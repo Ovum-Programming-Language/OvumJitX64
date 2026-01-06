@@ -1,3 +1,36 @@
+# CMake
+**cmake-build*/
+build/
+
+# All idea files
+**.idea*/
+
+# Visual Studio Code
+.vscode/
+.history/
+
+# Clangd rules
+.clangd
+.cache/
+
+# File-based project format
+*.iws
+
+# IntelliJ
+**out/
+
+# mpeltonen/sbt-idea plugin
+**.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
 # Prerequisites
 *.d
 
@@ -10,12 +43,6 @@
 # Precompiled Headers
 *.gch
 *.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
 
 # Compiled Dynamic libraries
 *.so
@@ -36,6 +63,3 @@
 *.exe
 *.out
 *.app
-
-# debug information files
-*.dwo
