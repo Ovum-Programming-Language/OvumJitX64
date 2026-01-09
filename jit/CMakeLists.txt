@@ -13,3 +13,5 @@ target_include_directories(jit
 
 target_include_directories(jit PUBLIC ${ovumjitx64_SOURCE_DIR})
 target_include_directories(jit PUBLIC ${OvumJitX64_SOURCE_DIR})
+
+target_link_libraries(jit PUBLIC tokens)

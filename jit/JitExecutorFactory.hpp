@@ -2,6 +2,9 @@
 #define JIT_JITEXECUTORFACTORY_HPP
 
 #include <string>
+#include <vector>
+
+#include <tokens/Token.hpp>
 
 #include "lib/executor/IJitExecutorFactory.hpp"
 
@@ -9,7 +12,10 @@ namespace ovum::vm::jit {
 
 class JitExecutorFactory : public executor::IJitExecutorFactory {
 public:
-  [[nodiscard]] std::unique_ptr<executor::IJitExecutor> Create(const std::string&) const override;
+  [[nodiscard]] std::unique_ptr<executor::IJitExecutor> Create(
+    const std::string&,
+    std::shared_ptr<std::vector<TokenPtr>>
+  ) const override;
 };
 
 } // namespace ovum::vm::jit
