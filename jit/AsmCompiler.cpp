@@ -214,11 +214,11 @@ std::expected<PackedOilCommand, std::runtime_error> ExtractOilCommand(std::vecto
 
 std::vector<AssemblyInstruction> CompilePackedCommand(PackedOilCommand& packed_oil_command) {
   std::vector<AssemblyInstruction> result;
-  
+  return result;
 }
 
 std::expected<std::vector<std::string>, std::runtime_error> CompilePackedCommands(std::vector<PackedOilCommand>& packed_oil_body) {
-  
+  return std::unexpected(std::runtime_error("CompilePackedCommands: not implemented"));
 }
 
 std::expected<std::vector<std::string>, std::runtime_error> SimpleAsmCompile(std::vector<TokenPtr>& oil_body) {
@@ -228,7 +228,7 @@ std::expected<std::vector<std::string>, std::runtime_error> SimpleAsmCompile(std
 
   while (pos < oil_body.size()) {
     auto res = ExtractOilCommand(oil_body, pos);
-    if (!res && res.error().what() != "EOF before any command") {
+    if (!res && res.error().what() != std::string("EOF before any command")) {
       return std::unexpected(res.error());
     }
     packed_commands.push_back(res.value());

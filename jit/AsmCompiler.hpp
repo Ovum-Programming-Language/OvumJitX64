@@ -1,9 +1,10 @@
 #ifndef JIT_ASMCOMPILER_HPP
 #define JIT_ASMCOMPILER_HPP
 
+#include <expected>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <expected>
 
 #include <tokens/Token.hpp>
 #include "jit/AsmData.hpp"
