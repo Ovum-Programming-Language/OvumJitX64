@@ -1,6 +1,9 @@
 add_library(jit STATIC
         JitExecutorFactory.cpp
         JitExecutor.cpp
+        AsmCompiler.cpp
+        OilCommandAsmCompiler.cpp
+        ./oil-to-asm-realisation/OilToAsmIntegerOperations.cpp
 )
 
 target_include_directories(jit

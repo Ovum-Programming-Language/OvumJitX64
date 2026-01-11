@@ -1,0 +1,92 @@
+#pragma once
+
+#include <cstdint>
+#include <string_view>
+#include <unordered_map>
+#include <vector>
+#include <array>
+#include <functional>
+#include <memory>
+
+#include "AsmData.hpp"
+
+namespace ovum::vm::jit {
+
+class OilCommandAsmCompiler {
+private:
+    static const size_t s_all_command_num = 125;
+public:
+    OilCommandAsmCompiler() = delete;
+    OilCommandAsmCompiler(const OilCommandAsmCompiler&) = delete;
+    OilCommandAsmCompiler(OilCommandAsmCompiler&&) = delete;
+    OilCommandAsmCompiler& operator=(const OilCommandAsmCompiler&) = delete;
+    OilCommandAsmCompiler& operator=(OilCommandAsmCompiler&&) = delete;
+    
+    [[nodiscard]] static const std::vector<AssemblyInstruction>& 
+    GetAssemblyForCommand(std::string_view command_name) noexcept {
+        static const std::vector<AssemblyInstruction> empty_vector;
+        
+        const auto it = s_command_assemblers.find(command_name);
+        if (it != s_command_assemblers.end()) {
+            return it->second;
+        }
+        return empty_vector;
+    }
+    
+    [[nodiscard]] static bool HasAssemblyForCommand(std::string_view command_name) noexcept {
+        return s_command_assemblers.find(command_name) != s_command_assemblers.end();
+    }
+    
+    [[nodiscard]] static const std::array<std::string_view, s_all_command_num>& GetAllCommandNames() noexcept {
+        return s_all_command_names;
+    }
+    
+    static bool RegisterCustomAssembly(std::string_view command_name, 
+                                      std::vector<AssemblyInstruction>&& instructions) {
+        return s_command_assemblers.emplace(command_name, std::move(instructions)).second;
+    }
+    
+    static void InitializeStandardAssemblers();
+
+private:
+    static const std::array<std::string_view, s_all_command_num> s_all_command_names;
+    
+    static std::unordered_map<std::string_view, std::vector<AssemblyInstruction>> s_command_assemblers;
+    
+    static void InitializeStackOperations();
+    
+    static void InitializeIntegerOperations();
+    
+    static void InitializeFloatOperations();
+    
+    static void InitializeByteOperations();
+    
+    static void InitializeBooleanOperations();
+    
+    static void InitializeStringOperations();
+    
+    static void InitializeConversionOperations();
+    
+    static void InitializeControlFlowOperations();
+    
+    static void InitializeInputOutputOperations();
+    
+    static void InitializeSystemOperations();
+    
+    static void InitializeFileOperations();
+    
+    static void InitializeTimeOperations();
+    
+    static void InitializeProcessOperations();
+    
+    static void InitializeOSOperations();
+    
+    static void InitializeRandomOperations();
+    
+    static void InitializeMemoryOperations();
+    
+    static void AddStandardAssembly(std::string_view command_name, 
+                                   std::vector<AssemblyInstruction>&& instructions);
+};
+
+} // namespace ovum::vm::jit
