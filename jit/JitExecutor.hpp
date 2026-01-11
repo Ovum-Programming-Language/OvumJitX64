@@ -3,8 +3,8 @@
 
 #include <tokens/Token.hpp>
 
-#include "lib/executor/IJitExecutor.hpp"
 #include "jit/AsmCompiler.hpp"
+#include "lib/executor/IJitExecutor.hpp"
 
 namespace ovum::vm::jit {
 
@@ -14,8 +14,7 @@ public:
 
   [[nodiscard]] bool TryCompile() const override;
 
-  [[nodiscard]] std::expected<void, std::runtime_error> Run(
-      execution_tree::PassedExecutionData& data) override;
+  [[nodiscard]] std::expected<void, std::runtime_error> Run(execution_tree::PassedExecutionData& data) override;
 
 private:
   std::shared_ptr<std::vector<TokenPtr>> oil_body;

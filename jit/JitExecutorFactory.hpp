@@ -12,10 +12,8 @@ namespace ovum::vm::jit {
 
 class JitExecutorFactory : public executor::IJitExecutorFactory {
 public:
-  [[nodiscard]] std::unique_ptr<executor::IJitExecutor> Create(
-    const std::string&,
-    std::shared_ptr<std::vector<TokenPtr>>
-  ) const override;
+  [[nodiscard]] std::unique_ptr<executor::IJitExecutor> Create(const std::string&,
+                                                               std::shared_ptr<std::vector<TokenPtr>>) const override;
 };
 
 } // namespace ovum::vm::jit
