@@ -22,7 +22,7 @@ bool JitExecutor::TryCompile() const {
   // auto asm_body = SimpleAsmCompile(oil_body_vec);
 
   for (auto token : oil_body_vec) {
-    std::cout << token->GetLexeme() << "    " << token->GetStringType() << "    " << std::endl;
+    // std::cout << token->GetLexeme() << "    " << token->GetStringType() << "    " << std::endl;
   }
 
   return false;
