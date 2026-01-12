@@ -13,11 +13,13 @@
 namespace ovum::vm::jit {
 
 enum class AsmCommand : uint16_t {
+  // Integer and general operations
   MOV = 0x100,
   MOVSX,
   MOVZX,
   LEA,
   XCHG,
+  MOVQ,      // Move quadword between XMM and integer registers
 
   ADD = 0x200,
   SUB,
@@ -78,43 +80,83 @@ enum class AsmCommand : uint16_t {
   SETLE,        // Set byte if less or equal (ZF=1 or SF≠OF) / SETNG
   SETNLE,       // Set byte if not less or equal (ZF=0 and SF=OF) / SETG
 
-  // Синонимы для совместимости
-  SETE = SETZ,   // Equal
-  SETNE = SETNZ, // Not equal
-  SETA = SETNBE, // Above
-  SETAE = SETNB, // Above or equal
-  SETNA = SETBE, // Not above
-  SETNAE = SETB, // Not above or equal
-  SETG = SETNLE, // Greater
-  SETGE = SETNL, // Greater or equal
-  SETNG = SETLE, // Not greater
-  SETNGE = SETL, // Not greater or equal
+  // SSE2 Scalar Double-Precision Floating-Point Instructions
+  ADDSD = 0x600,  // Add Scalar Double-Precision Floating-Point
+  SUBSD,          // Subtract Scalar Double-Precision Floating-Point
+  MULSD,          // Multiply Scalar Double-Precision Floating-Point
+  DIVSD,          // Divide Scalar Double-Precision Floating-Point
+  SQRTSD,         // Square Root Scalar Double-Precision Floating-Point
+  COMISD,         // Compare Scalar Ordered Double-Precision Floating-Point
+  UCOMISD,        // Unordered Compare Scalar Double-Precision Floating-Point
+  CVTSI2SD,       // Convert Dword Integer to Scalar Double-Precision FP
+  CVTSD2SI,       // Convert Scalar Double-Precision FP to Dword Integer
+  CVTSS2SD,       // Convert Scalar Single-Precision FP to Double-Precision FP
+  CVTSD2SS,       // Convert Scalar Double-Precision FP to Single-Precision FP
+  
+  // SSE2 Data Movement Instructions
+  MOVSD,          // Move Scalar Double-Precision Floating-Point
+  MOVAPD,         // Move Aligned Packed Double-Precision Floating-Point
+  MOVUPD,         // Move Unaligned Packed Double-Precision Floating-Point
+  
+  // SSE2 Logical Instructions
+  ANDPD,          // Bitwise Logical AND of Packed Double-Precision Floating-Point
+  ANDNPD,         // Bitwise Logical AND NOT of Packed Double-Precision Floating-Point
+  ORPD,           // Bitwise Logical OR of Packed Double-Precision Floating-Point
+  XORPD,          // Bitwise Logical XOR of Packed Double-Precision Floating-Point
 
-  PUSH = 0x600,
+  // Stack operations
+  PUSH = 0x700,
   POP,
   PUSHF,
   POPF,
 
-  MOVSB = 0x700,
+  // String operations
+  MOVSB = 0x800,
   MOVSW,
-  MOVSD,
   MOVSQ,
   CMPSB,
   CMPSW,
-  CMPSD,
   CMPSQ,
 
-  SYSCALL = 0x800,
+  // System operations
+  SYSCALL = 0x900,
   INT,
   IRET,
 
-  NOP = 0x900,
+  // Miscellaneous
+  NOP = 0xA00,
   HLT,
   CLC,
   STC,
   CMC,
-  CMP
+  CMP,
+  CQO,           // Convert Quadword to Octword (sign extend RAX into RDX:RAX)
+
+  // Flow control with labels
+  LABEL = 0xB00,       // Метка для перехода
+  CMOVE,               // Conditional move if equal
+  CMOVNE,              // Conditional move if not equal
+  CMOVB,               // Conditional move if below
+  CMOVBE,              // Conditional move if below or equal
+  CMOVA,               // Conditional move if above
+  CMOVAE,              // Conditional move if above or equal
+  
+  // Conversions
+  CVTTSD2SI,     // Convert with Truncation Scalar Double-Precision FP to Dword Integer
+  CVTTSD2SIQ,    // Convert with Truncation Scalar Double-Precision FP to Quadword Integer
 };
+
+// Синонимы для совместимости
+constexpr AsmCommand SETE = AsmCommand::SETZ;   // Equal
+constexpr AsmCommand SETNE = AsmCommand::SETNZ; // Not equal
+constexpr AsmCommand SETA = AsmCommand::SETNBE; // Above
+constexpr AsmCommand SETAE = AsmCommand::SETNB; // Above or equal
+constexpr AsmCommand SETNA = AsmCommand::SETBE; // Not above
+constexpr AsmCommand SETNAE = AsmCommand::SETB; // Not above or equal
+constexpr AsmCommand SETG = AsmCommand::SETNLE; // Greater
+constexpr AsmCommand SETGE = AsmCommand::SETNL; // Greater or equal
+constexpr AsmCommand SETNG = AsmCommand::SETLE; // Not greater
+constexpr AsmCommand SETNGE = AsmCommand::SETL; // Not greater or equal
 
 enum class Register : uint8_t {
   RAX = 0,
@@ -380,6 +422,10 @@ public:
       instr.arguments.push_back(make_label_arg(std::forward<T>(arg)));
     } else if constexpr (std::same_as<std::decay_t<T>, uint64_t>) {
       instr.arguments.push_back(make_uimm_arg(std::forward<T>(arg)));
+    } else if constexpr (std::same_as<std::decay_t<T>, float>) {
+      instr.arguments.push_back(make_float_arg(std::forward<T>(arg)));
+    } else if constexpr (std::same_as<std::decay_t<T>, double>) {
+      instr.arguments.push_back(make_double_arg(std::forward<T>(arg)));
     }
     return *this;
   }

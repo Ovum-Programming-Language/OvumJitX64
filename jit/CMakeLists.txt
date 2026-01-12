@@ -4,6 +4,11 @@ add_library(jit STATIC
         AsmCompiler.cpp
         OilCommandAsmCompiler.cpp
         ./oil-to-asm-realisation/OilToAsmIntegerOperations.cpp
+        ./oil-to-asm-realisation/OilToAsmFloatOperations.cpp
+        ./oil-to-asm-realisation/OilToAsmByteOperations.cpp
+        ./oil-to-asm-realisation/OilToAsmBooleanOperations.cpp
+        ./oil-to-asm-realisation/OilToAsmStackOperations.cpp
+        ./oil-to-asm-realisation/OilToAsmComplexOperations.cpp
 )
 
 target_include_directories(jit
