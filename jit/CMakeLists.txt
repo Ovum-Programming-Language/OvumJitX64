@@ -9,6 +9,7 @@ add_library(jit STATIC
         ./oil-to-asm-realisation/OilToAsmBooleanOperations.cpp
         ./oil-to-asm-realisation/OilToAsmStackOperations.cpp
         ./oil-to-asm-realisation/OilToAsmComplexOperations.cpp
+        ./oil-to-asm-realisation/AsmToBytes.cpp
 )
 
 target_include_directories(jit
