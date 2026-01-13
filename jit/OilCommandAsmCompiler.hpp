@@ -9,8 +9,13 @@
 #include <vector>
 
 #include "AsmData.hpp"
+#include <jit/oil-to-asm-realisation/AsmComplexOperationManager.hpp>
 
 namespace ovum::vm::jit {
+
+const uint64_t ShadowSpaceSizeBytes = 32;
+
+std::vector<AssemblyInstruction> CreateOperationCaller(CalledOperationCode op_code);
 
 class OilCommandAsmCompiler {
 private:

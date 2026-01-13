@@ -2,11 +2,6 @@
 
 namespace ovum::vm::jit {
 
-struct PackedOilCommand {
-  std::string command_name;
-  std::vector<std::string> arguments;
-};
-
 std::expected<std::string, std::runtime_error> ExtractArgument(std::vector<TokenPtr>& oil_body, size_t& pos) {
   if (!oil_body[pos]->GetStringType().contains("LITERAL")) {
     return std::unexpected(std::runtime_error("ExtractArgument: Argument not found!"));
@@ -145,8 +140,7 @@ std::expected<std::vector<std::string>, std::runtime_error> CompilePackedCommand
   return std::unexpected(std::runtime_error("CompilePackedCommands: not implemented"));
 }
 
-std::expected<std::vector<std::string>, std::runtime_error> SimpleAsmCompile(std::vector<TokenPtr>& oil_body) {
-  std::vector<std::string> result;
+std::expected<std::vector<PackedOilCommand>, std::runtime_error> PackOilCommands(std::vector<TokenPtr>& oil_body) {
   std::vector<PackedOilCommand> packed_commands;
   size_t pos = 0;
 
@@ -158,9 +152,7 @@ std::expected<std::vector<std::string>, std::runtime_error> SimpleAsmCompile(std
     packed_commands.push_back(res.value());
   }
 
-  // перебрать packed_commands и преобразовать в ассемблер
-
-  return result;
+  return packed_commands;
 }
 
 } // namespace ovum::vm::jit

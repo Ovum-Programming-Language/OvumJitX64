@@ -9,7 +9,12 @@ add_library(jit STATIC
         ./oil-to-asm-realisation/OilToAsmBooleanOperations.cpp
         ./oil-to-asm-realisation/OilToAsmStackOperations.cpp
         ./oil-to-asm-realisation/OilToAsmComplexOperations.cpp
+        ./oil-to-asm-realisation/AsmComplexOperationManager.cpp
         ./oil-to-asm-realisation/AsmToBytes.cpp
+        ./machine-code-runner/ExecutableMemory.cpp
+        ./machine-code-runner/MachineCodeFunction.cpp
+        ./machine-code-runner/MachineCodeRunner.cpp
+        ./machine-code-runner/AsmDataBuffer.cpp
 )
 
 target_include_directories(jit

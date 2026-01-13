@@ -159,49 +159,52 @@ constexpr AsmCommand SETNG = AsmCommand::SETLE; // Not greater
 constexpr AsmCommand SETNGE = AsmCommand::SETL; // Not greater or equal
 
 enum class Register : uint8_t {
-  RAX = 0,
-  RBX,
-  RCX,
-  RDX,
-  RSI,
-  RDI,
-  RBP,
-  RSP,
-  R8,
-  R9,
-  R10,
-  R11,
-  R12,
-  R13,
-  R14,
-  R15,
-  RIP,
-
-  EAX = 0x20,
-  EBX,
-  ECX,
-  EDX,
-  ESI,
-  EDI,
-  EBP,
-  ESP,
-  R8D,
-  R9D,
-  R10D,
-  R11D,
-  R12D,
-  R13D,
-  R14D,
-  R15D,
-
-  AX = 0x40,
-  BX,
+  // 64-bit registers - lower 3 bits are the actual encoding
+  RAX = 0,   // 000
+  RCX,       // 001
+  RDX,       // 010
+  RBX,       // 011
+  RSP,       // 100 - Special! Requires SIB byte
+  RBP,       // 101 - Special behavior
+  RSI,       // 110
+  RDI,       // 111
+  R8,        // 1000 (with REX.B=1)
+  R9,        // 1001
+  R10,       // 1010
+  R11,       // 1011
+  R12,       // 1100
+  R13,       // 1101
+  R14,       // 1110
+  R15,       // 1111
+  RIP,       // Special pseudo-register for RIP-relative addressing
+  
+  // 32-bit registers - same low 3 bits, different size
+  EAX = 0x10,   // 0 + size flag
+  ECX,          // 1
+  EDX,          // 2
+  EBX,          // 3
+  ESP,          // 4
+  EBP,          // 5
+  ESI,          // 6
+  EDI,          // 7
+  R8D,          // 8
+  R9D,          // 9
+  R10D,         // 10
+  R11D,         // 11
+  R12D,         // 12
+  R13D,         // 13
+  R14D,         // 14
+  R15D,         // 15
+  
+  // 16-bit registers
+  AX = 0x20,
   CX,
   DX,
+  BX,
+  SP,
+  BP,
   SI,
   DI,
-  BP,
-  SP,
   R8W,
   R9W,
   R10W,
@@ -210,19 +213,16 @@ enum class Register : uint8_t {
   R13W,
   R14W,
   R15W,
-
-  AL = 0x60,
-  BL,
-  CL,
-  DL,
-  AH,
-  BH,
-  CH,
-  DH,
-  SIL,
-  DIL,
-  BPL,
-  SPL,
+  
+  // 8-bit registers - LOW bytes
+  AL = 0x30,     // Low byte of RAX
+  CL,            // Low byte of RCX
+  DL,            // Low byte of RDX
+  BL,            // Low byte of RBX
+  SPL,           // Low byte of RSP - requires REX
+  BPL,           // Low byte of RBP - requires REX
+  SIL,           // Low byte of RSI - requires REX
+  DIL,           // Low byte of RDI - requires REX
   R8B,
   R9B,
   R10B,
@@ -231,28 +231,38 @@ enum class Register : uint8_t {
   R13B,
   R14B,
   R15B,
-
-  CS = 0x80,
+  
+  // 8-bit registers - HIGH bytes (cannot be used with REX!)
+  AH = 0x40,     // High byte of RAX (bits 8-15)
+  CH,            // High byte of RCX
+  DH,            // High byte of RDX
+  BH,            // High byte of RBX
+  
+  // Segment registers
+  ES = 0x50,
+  CS,
+  SS,
   DS,
-  ES,
   FS,
   GS,
-  SS,
-
-  CR0 = 0xA0,
-  CR1,
+  
+  // Control registers
+  CR0 = 0x60,
   CR2,
   CR3,
   CR4,
-
-  DR0 = 0xB0,
+  CR8,           // Added for x86-64
+  
+  // Debug registers
+  DR0 = 0x70,
   DR1,
   DR2,
   DR3,
   DR6,
   DR7,
-
-  MM0 = 0xC0,
+  
+  // MMX registers (map to lower 64 bits of XMM registers)
+  MM0 = 0x80,
   MM1,
   MM2,
   MM3,
@@ -260,7 +270,9 @@ enum class Register : uint8_t {
   MM5,
   MM6,
   MM7,
-  XMM0 = 0xD0,
+  
+  // XMM registers (SSE)
+  XMM0 = 0x90,
   XMM1,
   XMM2,
   XMM3,
@@ -276,7 +288,9 @@ enum class Register : uint8_t {
   XMM13,
   XMM14,
   XMM15,
-  YMM0 = 0xE0,
+  
+  // YMM registers (AVX)
+  YMM0 = 0xA0,
   YMM1,
   YMM2,
   YMM3,
@@ -292,14 +306,40 @@ enum class Register : uint8_t {
   YMM13,
   YMM14,
   YMM15,
-  ZMM0 = 0xF0,
+  
+  // ZMM registers (AVX-512)
+  ZMM0 = 0xB0,
   ZMM1,
   ZMM2,
   ZMM3,
   ZMM4,
   ZMM5,
   ZMM6,
-  ZMM7
+  ZMM7,
+  ZMM8,
+  ZMM9,
+  ZMM10,
+  ZMM11,
+  ZMM12,
+  ZMM13,
+  ZMM14,
+  ZMM15,
+  ZMM16,
+  ZMM17,
+  ZMM18,
+  ZMM19,
+  ZMM20,
+  ZMM21,
+  ZMM22,
+  ZMM23,
+  ZMM24,
+  ZMM25,
+  ZMM26,
+  ZMM27,
+  ZMM28,
+  ZMM29,
+  ZMM30,
+  ZMM31
 };
 
 template<typename T>

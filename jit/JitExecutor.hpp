@@ -5,8 +5,13 @@
 
 #include "jit/AsmCompiler.hpp"
 #include "lib/executor/IJitExecutor.hpp"
+#include <jit/machine-code-runner/MachineCodeFunction.hpp>
+#include <optional>
 
 namespace ovum::vm::jit {
+
+using MachineCodeFunctionSolved = MachineCodeFunction<void(void*, uint64_t, void*)>;
+using MachineCodeFunctionSolvedOpt = std::optional<MachineCodeFunctionSolved>;
 
 class JitExecutor : public executor::IJitExecutor {
 public:
@@ -18,6 +23,7 @@ public:
 
 private:
   std::shared_ptr<std::vector<TokenPtr>> oil_body;
+  MachineCodeFunctionSolvedOpt m_func;
 };
 
 } // namespace ovum::vm::jit

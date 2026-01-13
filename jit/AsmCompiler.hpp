@@ -11,7 +11,12 @@
 
 namespace ovum::vm::jit {
 
-std::expected<std::vector<std::string>, std::runtime_error> SimpleAsmCompile(std::vector<TokenPtr>& oil_body);
+struct PackedOilCommand {
+  std::string command_name;
+  std::vector<std::string> arguments;
+};
+
+std::expected<std::vector<PackedOilCommand>, std::runtime_error> PackOilCommands(std::vector<TokenPtr>& oil_body);
 
 } // namespace ovum::vm::jit
 
