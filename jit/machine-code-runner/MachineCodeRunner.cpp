@@ -16,8 +16,8 @@ void MachineCodeRunner::Run(MachineCodeFunction<void(void*, uint64_t, void*)>& m
     argv = new uint64_t[argc];
     uint64_t* argv_ptr_copy = argv;
     for (auto arg : data.memory.stack_frames.top().local_variables) {
-      if (std::holds_alternative<uint64_t>(arg)) {
-        *argv_ptr_copy = std::get<uint64_t>(arg);
+      if (std::holds_alternative<int64_t>(arg)) {
+        *argv_ptr_copy = static_cast<uint64_t>(std::get<int64_t>(arg));
       } else if (std::holds_alternative<double>(arg)) {
         *argv_ptr_copy = static_cast<uint64_t>(std::get<double>(arg));
       } else if (std::holds_alternative<bool>(arg)) {

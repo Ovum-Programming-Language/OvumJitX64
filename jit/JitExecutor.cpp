@@ -15,37 +15,51 @@ m_func(std::nullopt) {
 }
 
 bool JitExecutor::TryCompile() {
-  auto oil_body_vec_ptr = this->oil_body.get();
+  std::cout << "TryComplie Called" << std::endl;
 
+  if (m_func) {
+    // Compilation already done
+    return true;
+  }
+
+  // Function was not compiled, trying to do it now
+  // Getting oil body
+  auto oil_body_vec_ptr = this->oil_body.get();
   if (oil_body_vec_ptr == nullptr) {
+    // No oil body provided, cannot compile nullptr
     return false;
   }
 
+  // Some oil body provided 
   auto oil_body_vec = *oil_body_vec_ptr;
 
+  // Packing (parsing) oil commands, attaching arguments to them
   auto packed_oil_body_exp = PackOilCommands(oil_body_vec);
-
   if (!packed_oil_body_exp) {
+    // Error during parsing commands. Perhaps, incorrect oil body provided.
     return false;
   }
 
+  // Oil bytecode parsed correctly
   auto packed_oil_body = packed_oil_body_exp.value();
 
-  std::vector<AssemblyInstruction> asm_body = {{AsmCommand::MOV, {Register::R14, make_imm_arg(reinterpret_cast<int64_t>(datatemp))}}};
-  auto asm_body2 = CreateOperationCaller(CalledOperationCode::PRINT_LINE);
+  // Compile oil bytecode to assembler code
+  auto asm_body = OilCommandAsmCompiler::Compile(packed_oil_body);
   
-  for (auto c : asm_body) {
-    std::cout << (uint64_t)c.command << std::endl;
-  }
+  //for (auto c : asm_body) {
+  //  std::cout << (uint64_t)c.command << std::endl;
+  //}
 
-  asm_body.insert(asm_body.end(), asm_body2.begin(), asm_body2.end()); 
-
+  // Compile assembler code to machine code
   AsmToBytes asmtobytes;
   auto machinecode_body = asmtobytes.Convert(asm_body);
 
   if (!machinecode_body){
+    // Something whent wrong during assembler compilation
     return false;
   }
+
+  // Saving the compilation result and wrapping it as a functor
   m_func = MachineCodeFunctionSolved(code_vector(machinecode_body.value()));
 
   return true;

@@ -17,7 +17,7 @@ class JitExecutor : public executor::IJitExecutor {
 public:
   JitExecutor(std::shared_ptr<std::vector<TokenPtr>> jit_body);
 
-  [[nodiscard]] bool TryCompile() const override;
+  [[nodiscard]] bool TryCompile() override;
 
   [[nodiscard]] std::expected<void, std::runtime_error> Run(execution_tree::PassedExecutionData& data) override;
 

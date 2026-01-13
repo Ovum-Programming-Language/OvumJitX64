@@ -137,18 +137,28 @@ void OilCommandAsmCompiler::InitializeStandardAssemblers() {
   InitializeFloatOperations();
   InitializeByteOperations();
   InitializeBooleanOperations();
-  InitializeStringOperations();
-  InitializeConversionOperations();
-  InitializeControlFlowOperations();
-  InitializeInputOutputOperations();
-  InitializeSystemOperations();
-  InitializeFileOperations();
-  InitializeTimeOperations();
-  InitializeProcessOperations();
-  InitializeOSOperations();
-  InitializeRandomOperations();
-  InitializeMemoryOperations();
+  //InitializeStringOperations();
+  //InitializeConversionOperations();
+  //InitializeControlFlowOperations();
+  //InitializeInputOutputOperations();
+  //InitializeSystemOperations();
+  //InitializeFileOperations();
+  //InitializeTimeOperations();
+  //InitializeProcessOperations();
+  //InitializeOSOperations();
+  //InitializeRandomOperations();
+  //InitializeMemoryOperations();
 }
+
+const std::vector<AssemblyInstruction>& OilCommandAsmCompiler::Compile(std::vector<PackedOilCommand>& packed_oil_body) {
+  std::vector<AssemblyInstruction> result;
+  for (auto poc : packed_oil_body) {
+    auto cmd = GetAssemblyForCommand(poc.command_name);
+    result.insert(result.end(), cmd.begin(), cmd.end());
+  }
+  return result;
+}
+
 
 void OilCommandAsmCompiler::AddStandardAssembly(std::string_view command_name,
                                                 std::vector<AssemblyInstruction>&& instructions) {
