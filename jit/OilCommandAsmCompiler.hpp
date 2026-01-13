@@ -11,6 +11,7 @@
 #include "AsmData.hpp"
 #include <jit/oil-to-asm-realisation/AsmComplexOperationManager.hpp>
 #include <jit/AsmCompiler.hpp>
+#include <jit/machine-code-runner/AsmDataBuffer.hpp>
 
 namespace ovum::vm::jit {
 
@@ -29,7 +30,7 @@ public:
   OilCommandAsmCompiler& operator=(const OilCommandAsmCompiler&) = delete;
   OilCommandAsmCompiler& operator=(OilCommandAsmCompiler&&) = delete;
 
-  [[nodiscard]] static const std::vector<AssemblyInstruction>& Compile(std::vector<PackedOilCommand>& packed_oil_body);
+  [[nodiscard]] static const std::vector<AssemblyInstruction>&& Compile(std::vector<PackedOilCommand>& packed_oil_body);
 
   [[nodiscard]] static const std::vector<AssemblyInstruction>& GetAssemblyForCommand(
       std::string_view command_name) noexcept {

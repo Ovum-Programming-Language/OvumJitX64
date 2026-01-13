@@ -2,6 +2,18 @@
 
 namespace ovum::vm::jit {
 
+static const std::vector<AssemblyInstruction> prologue = {
+  // Save RSP to restore it before RET
+  {AsmCommand::MOV, {Register::R14, Register::RDI}},
+  {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP)), Register::RSP}}
+};
+
+static const std::vector<AssemblyInstruction> epilogue = {
+  // restore RSP before RET
+  {AsmCommand::MOV, {Register::RSP, addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP))}},
+  {AsmCommand::RET, {}}
+};
+
 const std::array<std::string_view, OilCommandAsmCompiler::s_all_command_num>
     OilCommandAsmCompiler::s_all_command_names = {"PushNull",
                                                   "Pop",
@@ -140,7 +152,7 @@ void OilCommandAsmCompiler::InitializeStandardAssemblers() {
   //InitializeStringOperations();
   //InitializeConversionOperations();
   //InitializeControlFlowOperations();
-  //InitializeInputOutputOperations();
+  InitializeInputOutputOperations();
   //InitializeSystemOperations();
   //InitializeFileOperations();
   //InitializeTimeOperations();
@@ -150,13 +162,15 @@ void OilCommandAsmCompiler::InitializeStandardAssemblers() {
   //InitializeMemoryOperations();
 }
 
-const std::vector<AssemblyInstruction>& OilCommandAsmCompiler::Compile(std::vector<PackedOilCommand>& packed_oil_body) {
+const std::vector<AssemblyInstruction>&& OilCommandAsmCompiler::Compile(std::vector<PackedOilCommand>& packed_oil_body) {
   std::vector<AssemblyInstruction> result;
+  result.insert(result.end(), prologue.begin(), prologue.end());
   for (auto poc : packed_oil_body) {
     auto cmd = GetAssemblyForCommand(poc.command_name);
     result.insert(result.end(), cmd.begin(), cmd.end());
   }
-  return result;
+  result.insert(result.end(), epilogue.begin(), epilogue.end());
+  return std::move(result);
 }
 
 
@@ -201,19 +215,16 @@ void OilCommandAsmCompiler::InitializeControlFlowOperations() {
     AddStandardAssembly("Return", std::move(return_asm));
 
     // CallIndirect, Break, Continue, Unwrap, NullCoalesce, IsNull аналогично...
-}
+}*/
 
 void OilCommandAsmCompiler::InitializeInputOutputOperations() {
-    std::vector<AssemblyInstruction> print_asm = {
-        {"pop", {"rdi"}, "Pop value to print", false, 1},
-        {"call", {"_print_impl"}, "Call print function", false, 5},
-        {"add", {"r11", "1"}, "Increment instruction pointer", false, 4}
-    };
-    AddStandardAssembly("Print", std::move(print_asm));
+    AddStandardAssembly("Print", std::move(CreateOperationCaller(CalledOperationCode::PRINT)));
+    
+    AddStandardAssembly("PrintLine", std::move(CreateOperationCaller(CalledOperationCode::PRINT)));
 
     // PrintLine, ReadLine, ReadChar, ReadInt, ReadFloat аналогично...
 }
-
+/*
 void OilCommandAsmCompiler::InitializeSystemOperations() {
     std::vector<AssemblyInstruction> exit_asm = {
         {"pop", {"rdi"}, "Pop exit code", false, 1},
