@@ -16,7 +16,7 @@ m_func(std::nullopt), m_machinecode(nullptr) {
 
 bool JitExecutor::TryCompile() {
   std::cout << "TryCompile called" << std::endl;
-  if (m_func) {
+  if (m_machinecode) {
     // Compilation already done
     return true;
   }
@@ -62,11 +62,16 @@ bool JitExecutor::TryCompile() {
   
   m_machinecode = std::make_shared<code_vector>(machinecode_body.value());
 
+  std::cout << "TryCompile success" << std::endl;
   return true;
 }
 
 std::expected<void, std::runtime_error> JitExecutor::Run(execution_tree::PassedExecutionData& data) {
-  if (!m_func) {
+  
+  std::cout << "JitExecutor::Run called" << std::endl;
+
+
+  if (!m_machinecode) {
     return std::unexpected(std::runtime_error("JitExecutor::Run: compiled function not found! Call TryCompile first!"));
   }
 

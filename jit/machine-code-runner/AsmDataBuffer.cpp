@@ -59,4 +59,8 @@ uint64_t AsmDataBuffer::GetOffset(Register reg) {
   }
 }
 
+uint64_t AsmDataBuffer::GetResultOffset() {
+  return 80;
+}
+
 } // namespace ovum::vm::jit

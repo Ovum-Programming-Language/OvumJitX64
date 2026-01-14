@@ -7,6 +7,8 @@ namespace ovum::vm::jit {
 void MachineCodeRunner::Run(MachineCodeFunction<void(void*, uint64_t, void*)>& machine_code_func, execution_tree::PassedExecutionData& data) {
   AsmDataBuffer data_buffer;
 
+  std::cout << "MachineCodeRunner::Run called" << std::endl;
+
   if (data.memory.stack_frames.empty()) {
     return;// TODO err handling
   }
@@ -19,9 +21,9 @@ void MachineCodeRunner::Run(MachineCodeFunction<void(void*, uint64_t, void*)>& m
     uint64_t* argv_ptr_copy = argv;
     for (auto arg : data.memory.stack_frames.top().local_variables) {
       if (std::holds_alternative<int64_t>(arg)) {
-        *argv_ptr_copy = static_cast<uint64_t>(std::get<int64_t>(arg));
+        *argv_ptr_copy = std::bit_cast<uint64_t>(std::get<int64_t>(arg));
       } else if (std::holds_alternative<double>(arg)) {
-        *argv_ptr_copy = static_cast<uint64_t>(std::get<double>(arg));
+        *argv_ptr_copy = std::bit_cast<uint64_t>(std::get<double>(arg));
       } else if (std::holds_alternative<bool>(arg)) {
         *argv_ptr_copy = static_cast<uint64_t>(std::get<bool>(arg));
       } else if (std::holds_alternative<char>(arg)) {
@@ -33,6 +35,7 @@ void MachineCodeRunner::Run(MachineCodeFunction<void(void*, uint64_t, void*)>& m
       } else {
         // TODO: error hadling
       }
+      std::cout << "    arg: " << std::hex << *argv_ptr_copy << std::endl;
       ++argv_ptr_copy;
     }
   }
@@ -43,11 +46,13 @@ void MachineCodeRunner::Run(MachineCodeFunction<void(void*, uint64_t, void*)>& m
                     reinterpret_cast<uint64_t>(argc),
                     reinterpret_cast<void*>(argv));
 
-  std::cout << "Run: func end" << std::endl;
+  std::cout << "Run: func end, with result: " << std::hex << data_buffer.Result << std::endl;
 
-  //if (argv) {
-  //  delete argv;
-  //}
+  data.memory.machine_stack.push(std::bit_cast<double>(data_buffer.Result));
+
+  if (argv) {
+    delete argv;
+  }
 }
 
 } // namespace ovum::vm::jit

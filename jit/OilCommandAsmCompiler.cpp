@@ -19,7 +19,10 @@ static const std::vector<AssemblyInstruction> prologue = {
 };
 
 static const std::vector<AssemblyInstruction> epilogue = {
-  // restore RSP before RET
+  // Save result value
+  {AsmCommand::POP, {Register::RAX}},
+  {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetResultOffset()), Register::RAX}},
+  // Restore RSP before RET
   {AsmCommand::MOV, {Register::RSP, addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP))}},
   {AsmCommand::RET, {}}
 };

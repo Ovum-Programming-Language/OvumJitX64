@@ -365,50 +365,49 @@ uint8_t AsmToBytes::EncodeRegister(Register reg) const {
   // Map register enum to ModR/M register encoding
   if (value >= 0 && value <= 15) {
     // RAX-R15 (64-bit) - need special handling for R8-R15
-    if (value >= 8) {
-      // R8-R15: encode as 0-7, REX.B will be set separately
-      return (value - 8) & 0x07;
-    }
-    return value & 0x07; // RAX-RDI: 0-7
+    return value & 0x0F; // RAX-RDI: 0-7
   } else if (value >= 0x20 && value <= 0x2F) {
     // EAX-R15D (32-bit)
     if (value >= 0x28) { // R8D-R15D
-      return (value - 0x28) & 0x07;
+      return (value - 0x28) & 0x0F;
     }
-    return (value - 0x20) & 0x07; // EAX-EDI
+    return (value - 0x20) & 0x0F; // EAX-EDI
   } else if (value >= 0x40 && value <= 0x4F) {
     // AX-R15W (16-bit)
     if (value >= 0x48) { // R8W-R15W
-      return (value - 0x48) & 0x07;
+      return (value - 0x48) & 0x0F;
     }
-    return (value - 0x40) & 0x07; // AX-DI
+    return (value - 0x40) & 0x0F; // AX-DI
   } else if (value >= 0x60 && value <= 0x6F) {
     // AL-R15B (8-bit)
     if (value >= 0x68) { // R8B-R15B
-      return (value - 0x68) & 0x07;
+      return (value - 0x68) & 0x0F;
     }
-    return (value - 0x60) & 0x07; // AL-DIL
+    return (value - 0x60) & 0x0F; // AL-DIL
   } else if (value >= 0x80 && value <= 0x8F) {
     // XMM0-XMM15 (SSE registers)
-    return (value - 0x80) & 0x07; // Only 3 bits needed for ModR/M
+    return (value - 0x80) & 0x0F; // Only 3 bits needed for ModR/M
+  } else if (value >= 0x90 && value <= 0x9F) {
+    // XMM0-XMM15 (для GetRegisterSize)
+    return (value - 0x90) & 0x0F;
   }
 
-  return value & 0x07;
+  return value & 0x0F;
 }
 
 uint8_t AsmToBytes::GetRegisterSize(Register reg) const {
   uint8_t value = static_cast<uint8_t>(reg);
 
   // Check ranges for each size
-  if (value >= 0U && value <= 15U) {  // RAX-R15 (64-bit)
+  if (value >= 0 && value <= 15) {  // RAX-R15 (64-bit)
     return 64;
-  } else if (value >= 0x20 && value <= 47U) {  // EAX-R15D (32-bit)
+  } else if (value >= 0x20 && value <= 0x2F) {  // EAX-R15D (32-bit)
     return 32;
-  } else if (value >= 0x40 && value <= 79U) {  // AX-R15W (16-bit)
+  } else if (value >= 0x40 && value <= 0x4F) {  // AX-R15W (16-bit)
     return 16;
-  } else if (value >= 0x60 && value <= 115U) {  // AL-R15B (8-bit)
+  } else if (value >= 0x60 && value <= 0x6F) {  // AL-R15B (8-bit)
     return 8;
-  } else if (value >= 0x90 && value <= 0x9F) {  // XMM0-XMM15 (128-bit)
+  } else if (value >= 0x80 && value <= 0x9F) {  // XMM0-XMM15 (128-bit)
     return 128;
   }
 
@@ -417,7 +416,7 @@ uint8_t AsmToBytes::GetRegisterSize(Register reg) const {
 
 bool AsmToBytes::IsXMMRegister(Register reg) const {
   uint8_t value = static_cast<uint8_t>(reg);
-  return value >= 0x90 && value <= 0x9F;
+  return (value >= 0x80 && value <= 0x8F) || (value >= 0x90 && value <= 0x9F);
 }
 
 bool AsmToBytes::IsExtendedRegister(Register reg) const {
@@ -427,7 +426,8 @@ bool AsmToBytes::IsExtendedRegister(Register reg) const {
          (value >= 0x28 && value <= 0x2F) ||   // R8D-R15D (32-bit)
          (value >= 0x48 && value <= 0x4F) ||   // R8W-R15W (16-bit)
          (value >= 0x68 && value <= 0x6F) ||   // R8B-R15B (8-bit)
-         (value >= 0x98 && value <= 0x9F);     // XMM8-XMM15
+         (value >= 0x88 && value <= 0x8F) ||   // XMM8-XMM15 (старый диапазон)
+         (value >= 0x98 && value <= 0x9F);     // XMM8-XMM15 (новый диапазон)
 }
 
 uint8_t AsmToBytes::GetSSEPrefix(AsmCommand cmd) const {
@@ -486,10 +486,10 @@ uint16_t AsmToBytes::GetSSEOpcode(AsmCommand cmd) const {
   }
 }
 
-uint8_t AsmToBytes::GetMOVQOpcode(bool xmm_to_reg) const {
+uint16_t AsmToBytes::GetMOVQOpcode(bool xmm_to_reg) const {
   // MOVQ has different opcodes depending on direction:
-  // MOVQ xmm, r/m64: 0x6E0F (66 0F 7E for xmm from r/m64)
-  // MOVQ r/m64, xmm: 0x7E0F (66 0F 6E for xmm to r/m64)
+  // MOVQ xmm, r/m64: 0x6E0F (66 0F 6E for xmm from r/m64)
+  // MOVQ r/m64, xmm: 0x7E0F (66 0F 7E for xmm to r/m64)
   return xmm_to_reg ? 0x6E0F : 0x7E0F;
 }
 
@@ -640,6 +640,85 @@ void AsmToBytes::EncodeMemoryAddress(const MemoryAddress& addr, std::vector<uint
   }
 }
 
+void AsmToBytes::EncodeMemoryAddressWithReg(const MemoryAddress& mem, 
+                                std::vector<uint8_t>& output, 
+                                uint8_t reg_field,
+                                uint8_t base_low3,
+                                uint8_t index_low3) {
+  
+  // Simple case: direct address [disp32] or [RIP+disp32]
+  if (!mem.base && !mem.index && mem.scale == 1) {
+    output.push_back(0x05 | (reg_field << 3)); // mod=00, r/m=101
+    EncodeImmediate(mem.displacement, 32, output);
+    return;
+  }
+  
+  // [base] or [base + disp]
+  if (mem.base && !mem.index && mem.scale == 1) {
+    uint8_t mod = 0;
+    int64_t disp = mem.displacement;
+    
+    if (disp == 0 && base_low3 != 5) { // RBP/R13 needs special handling
+      mod = 0x00; // [base]
+      output.push_back((mod << 6) | (reg_field << 3) | base_low3);
+    } else if (disp >= -128 && disp <= 127) {
+      mod = 0x01; // [base + disp8]
+      output.push_back((mod << 6) | (reg_field << 3) | base_low3);
+      EncodeImmediate(disp, 8, output);
+    } else {
+      mod = 0x02; // [base + disp32]
+      output.push_back((mod << 6) | (reg_field << 3) | base_low3);
+      EncodeImmediate(disp, 32, output);
+    }
+    return;
+  }
+  
+  // [base + index*scale + disp] - needs SIB byte
+  if (mem.base || mem.index) {
+    uint8_t mod = 0;
+    int64_t disp = mem.displacement;
+    
+    // Determine mod bits
+    if (disp == 0 && (!mem.base || base_low3 != 5)) {
+      mod = 0x00;
+    } else if (disp >= -128 && disp <= 127) {
+      mod = 0x01;
+    } else {
+      mod = 0x02;
+    }
+    
+    // For [index*scale] (no base), use ESP as base
+    uint8_t sib_base = mem.base ? base_low3 : 0x04; // 0x04 = ESP/RSP
+    if (!mem.base && mod == 0x00) {
+      mod = 0x00; // Special case for [index*scale]
+      sib_base = 0x05; // Means no base
+    }
+    
+    // Create SIB byte
+    uint8_t scale_bits = 0;
+    switch (mem.scale) {
+      case 1: scale_bits = 0; break;
+      case 2: scale_bits = 1; break;
+      case 4: scale_bits = 2; break;
+      case 8: scale_bits = 3; break;
+      default: scale_bits = 0; break;
+    }
+    
+    uint8_t sib = (scale_bits << 6) | (index_low3 << 3) | sib_base;
+    
+    // Output ModR/M and SIB
+    output.push_back((mod << 6) | (reg_field << 3) | 0x04); // r/m=100 means SIB
+    output.push_back(sib);
+    
+    // Output displacement if needed
+    if (mod == 0x01) {
+      EncodeImmediate(disp, 8, output);
+    } else if (mod == 0x02 || (!mem.base && mod == 0x00)) {
+      EncodeImmediate(disp, 32, output);
+    }
+  }
+}
+
 std::expected<void, std::runtime_error> AsmToBytes::EncodeMov(const AssemblyInstruction& instr,
                                                                std::vector<uint8_t>& output) {
   if (instr.arguments.size() < 2) {
@@ -661,23 +740,40 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeMov(const AssemblyInst
   bool is_imm_to_reg = std::holds_alternative<Register>(arg1) && std::holds_alternative<int64_t>(arg2);
   bool is_imm_to_mem = std::holds_alternative<MemoryAddress>(arg1) && std::holds_alternative<int64_t>(arg2);
 
+  // Helper function to get register code with proper REX handling
+  auto encodeRegWithRex = [&](Register reg, uint8_t& rex, uint8_t rex_bit) -> uint8_t {
+    uint8_t reg_code = EncodeRegister(reg);
+    if (reg_code >= 8) {
+      rex |= rex_bit;  // Set appropriate REX bit
+      return reg_code & 0x07;  // Return only lower 3 bits
+    }
+    return reg_code;  // Return as-is (0-7)
+  };
+
   // Handle MOV reg, reg
   if (is_reg_to_reg) {
     Register dst = std::get<Register>(arg1);
     Register src = std::get<Register>(arg2);
     uint8_t reg_size = GetRegisterSize(dst);
 
-    // Determine if REX prefix is needed
-    bool rex_needed = (reg_size == 64) || IsExtendedRegister(dst) || IsExtendedRegister(src);
+    // Initialize REX
     uint8_t rex = 0x40;
+    bool need_rex = false;
     
-    if (rex_needed) {
-      if (reg_size == 64)
-        rex |= 0x08; // REX.W
-      if (IsExtendedRegister(dst))     // dst in r/m field
-        rex |= 0x01; // REX.B
-      if (IsExtendedRegister(src))     // src in reg field
-        rex |= 0x04; // REX.R
+    // Get register codes with REX bits
+    uint8_t dst_low3 = encodeRegWithRex(dst, rex, 0x01); // REX.B for r/m field
+    uint8_t src_low3 = encodeRegWithRex(src, rex, 0x04); // REX.R for reg field
+    
+    if (reg_size == 64) {
+      rex |= 0x08; // REX.W
+      need_rex = true;
+    }
+    
+    if (IsExtendedRegister(dst) || IsExtendedRegister(src) || reg_size == 64) {
+      need_rex = true;
+    }
+    
+    if (need_rex) {
       output.push_back(rex);
     }
 
@@ -690,14 +786,11 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeMov(const AssemblyInst
     } else if (reg_size == 32) {
       output.push_back(0x89); // MOV r/m32, r32
     } else if (reg_size == 64) {
-      // For 64-bit, REX.W should already be set
       output.push_back(0x89); // MOV r/m64, r64
     }
 
-    // Form ModR/M byte
-    uint8_t modrm = 0xC0; // Register mode
-    modrm |= (EncodeRegister(src) << 3); // r/m field = dst
-    modrm |= EncodeRegister(dst);        // reg field = src
+    // Form ModR/M byte: [mod=11][reg=src_low3][r/m=dst_low3]
+    uint8_t modrm = 0xC0 | (src_low3 << 3) | dst_low3;
     output.push_back(modrm);
 
   } 
@@ -707,31 +800,42 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeMov(const AssemblyInst
     int64_t imm = std::get<int64_t>(arg2);
     uint8_t reg_size = GetRegisterSize(dst);
 
-    // Determine if REX prefix is needed
-    bool rex_needed = (reg_size == 64) || IsExtendedRegister(dst);
-    uint8_t rex = 0x40;
+    // For MOV reg, imm there's special opcode format: 0xB8 + reg_code
+    uint8_t dst_code = EncodeRegister(dst);
     
-    if (rex_needed) {
-      if (reg_size == 64)
-        rex |= 0x08; // REX.W
-      if (IsExtendedRegister(dst))
-        rex |= 0x01; // REX.B
+    // Handle REX prefix
+    uint8_t rex = 0x40;
+    bool need_rex = false;
+    
+    if (reg_size == 64) {
+      rex |= 0x08; // REX.W
+      need_rex = true;
+    }
+    
+    if (dst_code >= 8) {
+      // For extended registers, we need REX and adjust opcode
+      rex |= 0x01; // REX.B
+      dst_code &= 0x07; // Use only lower 3 bits
+      need_rex = true;
+    }
+    
+    if (need_rex) {
       output.push_back(rex);
     }
 
     if (reg_size == 8) {
-      output.push_back(0xB0 | EncodeRegister(dst)); // MOV r8, imm8
+      output.push_back(0xB0 | dst_code); // MOV r8, imm8
       EncodeImmediate(imm, 8, output);
     } else if (reg_size == 16) {
       output.push_back(0x66);
-      output.push_back(0xB8 | EncodeRegister(dst)); // MOV r16, imm16
+      output.push_back(0xB8 | dst_code); // MOV r16, imm16
       EncodeImmediate(imm, 16, output);
     } else if (reg_size == 32) {
-      output.push_back(0xB8 | EncodeRegister(dst)); // MOV r32, imm32
+      output.push_back(0xB8 | dst_code); // MOV r32, imm32
       EncodeImmediate(imm, 32, output);
     } else if (reg_size == 64) {
-      output.push_back(0xB8 | EncodeRegister(dst)); // MOV r64, imm64
-      // MOV r64, imm64 uses 64-bit value
+      // Special handling for 64-bit immediate
+      output.push_back(0xB8 | dst_code); // MOV r64, imm64
       EncodeImmediate(imm, 64, output);
     }
 
@@ -742,21 +846,41 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeMov(const AssemblyInst
     MemoryAddress mem = std::get<MemoryAddress>(arg2);
     uint8_t reg_size = GetRegisterSize(dst);
 
-    // Determine if REX prefix is needed
-    bool rex_needed = (reg_size == 64) || IsExtendedRegister(dst) ||
-                      (mem.base && IsExtendedRegister(*mem.base)) ||
-                      (mem.index && IsExtendedRegister(*mem.index));
+    // Initialize REX
     uint8_t rex = 0x40;
+    bool need_rex = false;
     
-    if (rex_needed) {
-      if (reg_size == 64)
-        rex |= 0x08; // REX.W
-      if (IsExtendedRegister(dst))
-        rex |= 0x04; // REX.R (destination is in reg field)
-      if (mem.base && IsExtendedRegister(*mem.base))
-        rex |= 0x01; // REX.B (base is in r/m or SIB base field)
-      if (mem.index && IsExtendedRegister(*mem.index))
-        rex |= 0x02; // REX.X (index is in SIB index field)
+    // Handle destination register (goes in reg field)
+    uint8_t dst_low3 = encodeRegWithRex(dst, rex, 0x04); // REX.R for reg field
+    
+    // Handle source memory addressing
+    uint8_t base_low3 = 0;
+    uint8_t index_low3 = 0;
+    
+    if (mem.base) {
+      uint8_t base_code = EncodeRegister(*mem.base);
+      if (base_code >= 8) {
+        rex |= 0x01; // REX.B for base
+        need_rex = true;
+      }
+      base_low3 = base_code & 0x07;
+    }
+    
+    if (mem.index) {
+      uint8_t index_code = EncodeRegister(*mem.index);
+      if (index_code >= 8) {
+        rex |= 0x02; // REX.X for index
+        need_rex = true;
+      }
+      index_low3 = index_code & 0x07;
+    }
+    
+    if (reg_size == 64) {
+      rex |= 0x08; // REX.W
+      need_rex = true;
+    }
+    
+    if (IsExtendedRegister(dst) || need_rex) {
       output.push_back(rex);
     }
 
@@ -771,29 +895,50 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeMov(const AssemblyInst
       output.push_back(0x8B); // MOV r64, r/m64
     }
 
-    EncodeMemoryAddress(mem, output, EncodeRegister(dst));
+    // Pass dst_low3 as reg field for EncodeMemoryAddress
+    EncodeMemoryAddressWithReg(mem, output, dst_low3, base_low3, index_low3);
   } 
-  // Handle MOV [mem], reg
+  // Handle MOV [mem], reg - FIXED VERSION
   else if (is_reg_to_mem) {
     MemoryAddress mem = std::get<MemoryAddress>(arg1);
     Register src = std::get<Register>(arg2);
     uint8_t reg_size = GetRegisterSize(src);
 
-    // Determine if REX prefix is needed
-    bool rex_needed = (reg_size == 64) || IsExtendedRegister(src) ||
-                      (mem.base && IsExtendedRegister(*mem.base)) ||
-                      (mem.index && IsExtendedRegister(*mem.index));
+    // Initialize REX
     uint8_t rex = 0x40;
+    bool need_rex = false;
     
-    if (rex_needed) {
-      if (reg_size == 64)
-        rex |= 0x08; // REX.W
-      if (IsExtendedRegister(src))
-        rex |= 0x04; // REX.R (source is in reg field)
-      if (mem.base && IsExtendedRegister(*mem.base))
-        rex |= 0x01; // REX.B (base is in r/m or SIB base field)
-      if (mem.index && IsExtendedRegister(*mem.index))
-        rex |= 0x02; // REX.X (index is in SIB index field)
+    // Handle source register (goes in reg field)
+    uint8_t src_low3 = encodeRegWithRex(src, rex, 0x04); // REX.R for reg field
+    
+    // Handle destination memory addressing
+    uint8_t base_low3 = 0;
+    uint8_t index_low3 = 0;
+    
+    if (mem.base) {
+      uint8_t base_code = EncodeRegister(*mem.base);
+      if (base_code >= 8) {
+        rex |= 0x01; // REX.B for base
+        need_rex = true;
+      }
+      base_low3 = base_code & 0x07;
+    }
+    
+    if (mem.index) {
+      uint8_t index_code = EncodeRegister(*mem.index);
+      if (index_code >= 8) {
+        rex |= 0x02; // REX.X for index
+        need_rex = true;
+      }
+      index_low3 = index_code & 0x07;
+    }
+    
+    if (reg_size == 64) {
+      rex |= 0x08; // REX.W
+      need_rex = true;
+    }
+    
+    if (IsExtendedRegister(src) || need_rex) {
       output.push_back(rex);
     }
 
@@ -808,29 +953,51 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeMov(const AssemblyInst
       output.push_back(0x89); // MOV r/m64, r64
     }
 
-    EncodeMemoryAddress(mem, output, EncodeRegister(src));
+    // Pass src_low3 as reg field for EncodeMemoryAddress
+    EncodeMemoryAddressWithReg(mem, output, src_low3, base_low3, index_low3);
   } 
   // Handle MOV [mem], imm
   else if (is_imm_to_mem) {
     MemoryAddress mem = std::get<MemoryAddress>(arg1);
     int64_t imm = std::get<int64_t>(arg2);
     
-    // Default to 32-bit value for memory
-    // Determine if REX prefix is needed for memory access
-    bool rex_needed = (mem.base && IsExtendedRegister(*mem.base)) ||
-                      (mem.index && IsExtendedRegister(*mem.index));
-    uint8_t rex = 0x48; // REX.W default for 64-bit operations
+    // Initialize REX
+    uint8_t rex = 0x40;
+    bool need_rex = false;
     
-    if (rex_needed) {
-      if (mem.base && IsExtendedRegister(*mem.base))
-        rex |= 0x01; // REX.B
-      if (mem.index && IsExtendedRegister(*mem.index))
-        rex |= 0x02; // REX.X
+    // Handle memory addressing
+    uint8_t base_low3 = 0;
+    uint8_t index_low3 = 0;
+    
+    if (mem.base) {
+      uint8_t base_code = EncodeRegister(*mem.base);
+      if (base_code >= 8) {
+        rex |= 0x01; // REX.B for base
+        need_rex = true;
+      }
+      base_low3 = base_code & 0x07;
     }
-    output.push_back(rex);
+    
+    if (mem.index) {
+      uint8_t index_code = EncodeRegister(*mem.index);
+      if (index_code >= 8) {
+        rex |= 0x02; // REX.X for index
+        need_rex = true;
+      }
+      index_low3 = index_code & 0x07;
+    }
+    
+    // For 64-bit operations
+    rex |= 0x08; // REX.W
+    
+    if (need_rex) {
+      output.push_back(rex);
+    }
     
     output.push_back(0xC7); // MOV r/m64, imm32 (sign-extended)
-    EncodeMemoryAddress(mem, output, 0); // reg field = 0 for MOV with immediate
+    
+    // For MOV [mem], imm, reg field is 0 in ModR/M
+    EncodeMemoryAddressWithReg(mem, output, 0, base_low3, index_low3);
     EncodeImmediate(imm, 32, output);
   } 
   else {
@@ -1007,7 +1174,21 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeMOVQ(const AssemblyIns
     output.push_back(0x0F);
     output.push_back(0x7E); // MOVQ xmm, m64
 
-    EncodeMemoryAddress(mem, output, EncodeRegister(xmm_reg));
+    // Используем EncodeMemoryAddressWithReg вместо EncodeMemoryAddress
+    uint8_t base_low3 = 0;
+    uint8_t index_low3 = 0;
+    
+    if (mem.base) {
+      uint8_t base_code = EncodeRegister(*mem.base);
+      base_low3 = base_code & 0x07;
+    }
+    
+    if (mem.index) {
+      uint8_t index_code = EncodeRegister(*mem.index);
+      index_low3 = index_code & 0x07;
+    }
+    
+    EncodeMemoryAddressWithReg(mem, output, EncodeRegister(xmm_reg), base_low3, index_low3);
   }
   // Handle MOVQ [mem], xmm (XMM to memory)
   else if (xmm_to_mem) {
@@ -1026,7 +1207,21 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeMOVQ(const AssemblyIns
     output.push_back(0x0F);
     output.push_back(0xD6); // MOVQ m64, xmm
 
-    EncodeMemoryAddress(mem, output, EncodeRegister(xmm_reg));
+    // Используем EncodeMemoryAddressWithReg вместо EncodeMemoryAddress
+    uint8_t base_low3 = 0;
+    uint8_t index_low3 = 0;
+    
+    if (mem.base) {
+      uint8_t base_code = EncodeRegister(*mem.base);
+      base_low3 = base_code & 0x07;
+    }
+    
+    if (mem.index) {
+      uint8_t index_code = EncodeRegister(*mem.index);
+      index_low3 = index_code & 0x07;
+    }
+    
+    EncodeMemoryAddressWithReg(mem, output, EncodeRegister(xmm_reg), base_low3, index_low3);
   }
   else {
     return std::unexpected(std::runtime_error("Unsupported MOVQ operand combination"));
@@ -1434,8 +1629,6 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeArithmetic(const Assem
       switch (instr.command) {
         case AsmCommand::ADD: op_ext = 0; break;
         case AsmCommand::OR:  op_ext = 1; break;
-        //case AsmCommand::ADC: op_ext = 2; break;
-        //case AsmCommand::SBB: op_ext = 3; break;
         case AsmCommand::AND: op_ext = 4; break;
         case AsmCommand::SUB: op_ext = 5; break;
         case AsmCommand::XOR: op_ext = 6; break;
@@ -1700,11 +1893,39 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeJump(const AssemblyIns
     if (instr.command == AsmCommand::CALL) {
       // CALL [mem]: FF /2
       output.push_back(0xFF);
-      EncodeMemoryAddress(mem, output, 2); // reg field = 2 for CALL
+      // Используем EncodeMemoryAddressWithReg
+      uint8_t base_low3 = 0;
+      uint8_t index_low3 = 0;
+      
+      if (mem.base) {
+        uint8_t base_code = EncodeRegister(*mem.base);
+        base_low3 = base_code & 0x07;
+      }
+      
+      if (mem.index) {
+        uint8_t index_code = EncodeRegister(*mem.index);
+        index_low3 = index_code & 0x07;
+      }
+      
+      EncodeMemoryAddressWithReg(mem, output, 2, base_low3, index_low3);
     } else if (instr.command == AsmCommand::JMP) {
       // JMP [mem]: FF /4
       output.push_back(0xFF);
-      EncodeMemoryAddress(mem, output, 4); // reg field = 4 for JMP
+      // Используем EncodeMemoryAddressWithReg
+      uint8_t base_low3 = 0;
+      uint8_t index_low3 = 0;
+      
+      if (mem.base) {
+        uint8_t base_code = EncodeRegister(*mem.base);
+        base_low3 = base_code & 0x07;
+      }
+      
+      if (mem.index) {
+        uint8_t index_code = EncodeRegister(*mem.index);
+        index_low3 = index_code & 0x07;
+      }
+      
+      EncodeMemoryAddressWithReg(mem, output, 4, base_low3, index_low3);
     } else {
       // Conditional jumps don't support indirect jumps by memory
       return std::unexpected(std::runtime_error("Conditional jumps do not support memory operands"));
@@ -1845,7 +2066,21 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeSSE2(const AssemblyIns
       output.push_back(static_cast<uint8_t>(opcode16 & 0xFF));
       output.push_back(static_cast<uint8_t>(opcode16 >> 8));
       
-      EncodeMemoryAddress(mem, output, EncodeRegister(xmm_reg));
+      // Используем EncodeMemoryAddressWithReg
+      uint8_t base_low3 = 0;
+      uint8_t index_low3 = 0;
+      
+      if (mem.base) {
+        uint8_t base_code = EncodeRegister(*mem.base);
+        base_low3 = base_code & 0x07;
+      }
+      
+      if (mem.index) {
+        uint8_t index_code = EncodeRegister(*mem.index);
+        index_low3 = index_code & 0x07;
+      }
+      
+      EncodeMemoryAddressWithReg(mem, output, EncodeRegister(xmm_reg), base_low3, index_low3);
     }
   }
   // Handle CVTSD2SI: XMM to integer
@@ -1889,7 +2124,21 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeSSE2(const AssemblyIns
       output.push_back(static_cast<uint8_t>(opcode16 & 0xFF));
       output.push_back(static_cast<uint8_t>(opcode16 >> 8));
       
-      EncodeMemoryAddress(mem, output, EncodeRegister(int_reg));
+      // Используем EncodeMemoryAddressWithReg
+      uint8_t base_low3 = 0;
+      uint8_t index_low3 = 0;
+      
+      if (mem.base) {
+        uint8_t base_code = EncodeRegister(*mem.base);
+        base_low3 = base_code & 0x07;
+      }
+      
+      if (mem.index) {
+        uint8_t index_code = EncodeRegister(*mem.index);
+        index_low3 = index_code & 0x07;
+      }
+      
+      EncodeMemoryAddressWithReg(mem, output, EncodeRegister(int_reg), base_low3, index_low3);
     }
   }
   // Handle XMM to XMM operations
@@ -1934,7 +2183,21 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeSSE2(const AssemblyIns
     output.push_back(static_cast<uint8_t>(opcode16 & 0xFF));
     output.push_back(static_cast<uint8_t>(opcode16 >> 8));
     
-    EncodeMemoryAddress(mem, output, EncodeRegister(xmm_reg));
+    // Используем EncodeMemoryAddressWithReg
+    uint8_t base_low3 = 0;
+    uint8_t index_low3 = 0;
+    
+    if (mem.base) {
+      uint8_t base_code = EncodeRegister(*mem.base);
+      base_low3 = base_code & 0x07;
+    }
+    
+    if (mem.index) {
+      uint8_t index_code = EncodeRegister(*mem.index);
+      index_low3 = index_code & 0x07;
+    }
+    
+    EncodeMemoryAddressWithReg(mem, output, EncodeRegister(xmm_reg), base_low3, index_low3);
   }
   // Handle XMM to memory
   else if (reg_to_mem) {
@@ -1955,7 +2218,21 @@ std::expected<void, std::runtime_error> AsmToBytes::EncodeSSE2(const AssemblyIns
     output.push_back(static_cast<uint8_t>(opcode16 & 0xFF));
     output.push_back(static_cast<uint8_t>(opcode16 >> 8));
     
-    EncodeMemoryAddress(mem, output, EncodeRegister(xmm_reg));
+    // Используем EncodeMemoryAddressWithReg
+    uint8_t base_low3 = 0;
+    uint8_t index_low3 = 0;
+    
+    if (mem.base) {
+      uint8_t base_code = EncodeRegister(*mem.base);
+      base_low3 = base_code & 0x07;
+    }
+    
+    if (mem.index) {
+      uint8_t index_code = EncodeRegister(*mem.index);
+      index_low3 = index_code & 0x07;
+    }
+    
+    EncodeMemoryAddressWithReg(mem, output, EncodeRegister(xmm_reg), base_low3, index_low3);
   }
   else {
     return std::unexpected(std::runtime_error("Unsupported SSE2 operand combination"));

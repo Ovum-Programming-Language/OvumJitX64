@@ -42,7 +42,7 @@ private:
   bool IsXMMRegister(Register reg) const;
   uint8_t GetSSEPrefix(AsmCommand cmd) const;
   uint16_t GetSSEOpcode(AsmCommand cmd) const;
-  uint8_t GetMOVQOpcode(bool xmm_to_reg) const;
+  uint16_t GetMOVQOpcode(bool xmm_to_reg) const;
 
   // Encode immediate value
   void EncodeImmediate(int64_t value, uint8_t size, std::vector<uint8_t>& output);
@@ -50,6 +50,11 @@ private:
 
   // Encode memory address
   void EncodeMemoryAddress(const MemoryAddress& addr, std::vector<uint8_t>& output, uint8_t reg_field);
+  void EncodeMemoryAddressWithReg(const MemoryAddress& mem, 
+                                  std::vector<uint8_t>& output, 
+                                  uint8_t reg_field,
+                                  uint8_t base_low3,
+                                  uint8_t index_low3);
 
   // Encode specific instruction types
   std::expected<void, std::runtime_error> EncodeMov(const AssemblyInstruction& instr,

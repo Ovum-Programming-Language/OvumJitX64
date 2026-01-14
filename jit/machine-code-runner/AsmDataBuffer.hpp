@@ -19,7 +19,7 @@ struct AsmDataBuffer {
   uint64_t RegisterR10DataCell = 0; //| 56
   uint64_t RegisterR11DataCell = 0; //| 64
   uint64_t RegisterRSPDataCell = 0; //| 72
-  uint64_t Reserved = 0; //           | 80
+  uint64_t Result = 0;              //| 80
   #ifdef _WIN32
   uint64_t RegisterXMM0DataCell = 0; //| 88
   uint64_t RegisterXMM1DataCell = 0; //| 96
@@ -33,6 +33,7 @@ struct AsmDataBuffer {
   ~AsmDataBuffer() = default;
 
   static uint64_t GetOffset(Register reg);
+  static uint64_t GetResultOffset();
 };
 
 } // namespace ovum::vm::jit
