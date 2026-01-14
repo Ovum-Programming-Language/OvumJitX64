@@ -23,6 +23,7 @@ public:
 
 private:
   std::shared_ptr<std::vector<TokenPtr>> oil_body;
+  std::shared_ptr<code_vector> m_machinecode;
   MachineCodeFunctionSolvedOpt m_func;
 };
 

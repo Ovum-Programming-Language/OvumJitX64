@@ -4,7 +4,11 @@ namespace ovum::vm::jit {
 
 std::expected<std::string, std::runtime_error> ExtractArgument(std::vector<TokenPtr>& oil_body, size_t& pos) {
   if (!oil_body[pos]->GetStringType().contains("LITERAL")) {
-    return std::unexpected(std::runtime_error("ExtractArgument: Argument not found!"));
+    std::string what = "ExtractArgument: Argument not found! Found: ";
+    what += oil_body[pos]->GetStringType();
+    what += "   ";
+    what += oil_body[pos]->GetLexeme();
+    return std::unexpected(std::runtime_error(what));
   }
 
   std::string result = oil_body[pos++]->GetLexeme();
@@ -23,6 +27,7 @@ std::expected<PackedOilCommand, std::runtime_error> ExtractOilCommand(std::vecto
   }
 
   result.command_name = oil_body[pos]->GetLexeme();
+  ++pos;
 
   if (result.command_name == "LoadLocal" || result.command_name == "SetLocal" || result.command_name == "LoadStatic" ||
       result.command_name == "SetStatic" || result.command_name == "GetField" || result.command_name == "SetField") {

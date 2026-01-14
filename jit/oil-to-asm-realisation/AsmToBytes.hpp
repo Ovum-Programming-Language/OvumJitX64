@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "jit/AsmData.hpp"
+#include <jit/machine-code-runner/ExecutableMemory.hpp>
 
 namespace ovum::vm::jit {
 
@@ -17,7 +18,7 @@ public:
   AsmToBytes();
 
   // Convert assembly instructions to machine code bytes
-  std::expected<std::vector<uint8_t>, std::runtime_error> Convert(
+  std::expected<code_vector, std::runtime_error> Convert(
       const std::vector<AssemblyInstruction>& instructions);
 
   // Get label addresses (for resolving jump targets)
@@ -38,6 +39,10 @@ private:
 
   // Check if register is extended (R8-R15)
   bool IsExtendedRegister(Register reg) const;
+  bool IsXMMRegister(Register reg) const;
+  uint8_t GetSSEPrefix(AsmCommand cmd) const;
+  uint16_t GetSSEOpcode(AsmCommand cmd) const;
+  uint8_t GetMOVQOpcode(bool xmm_to_reg) const;
 
   // Encode immediate value
   void EncodeImmediate(int64_t value, uint8_t size, std::vector<uint8_t>& output);
@@ -49,6 +54,8 @@ private:
   // Encode specific instruction types
   std::expected<void, std::runtime_error> EncodeMov(const AssemblyInstruction& instr,
                                                      std::vector<uint8_t>& output);
+  std::expected<void, std::runtime_error> EncodeMOVQ(const AssemblyInstruction& instr,
+                                                                std::vector<uint8_t>& output);
   std::expected<void, std::runtime_error> EncodeArithmetic(const AssemblyInstruction& instr,
                                                             std::vector<uint8_t>& output);
   std::expected<void, std::runtime_error> EncodeJump(const AssemblyInstruction& instr,

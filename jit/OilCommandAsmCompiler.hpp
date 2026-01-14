@@ -18,6 +18,7 @@ namespace ovum::vm::jit {
 const uint64_t ShadowSpaceSizeBytes = 32;
 
 std::vector<AssemblyInstruction> CreateOperationCaller(CalledOperationCode op_code);
+std::vector<AssemblyInstruction> CreateArgumentPlacer(std::vector<std::string> args);
 
 class OilCommandAsmCompiler {
 private:
@@ -30,7 +31,7 @@ public:
   OilCommandAsmCompiler& operator=(const OilCommandAsmCompiler&) = delete;
   OilCommandAsmCompiler& operator=(OilCommandAsmCompiler&&) = delete;
 
-  [[nodiscard]] static const std::vector<AssemblyInstruction>&& Compile(std::vector<PackedOilCommand>& packed_oil_body);
+  [[nodiscard]] static const std::vector<AssemblyInstruction> Compile(std::vector<PackedOilCommand>& packed_oil_body);
 
   [[nodiscard]] static const std::vector<AssemblyInstruction>& GetAssemblyForCommand(
       std::string_view command_name) noexcept {
@@ -39,6 +40,22 @@ public:
     const auto it = s_command_assemblers.find(command_name);
     if (it != s_command_assemblers.end()) {
       return it->second;
+    }
+    return empty_vector;
+  }
+
+  [[nodiscard]] static const std::vector<AssemblyInstruction> GetAssemblyForCommandWithArgs(
+      std::string_view command_name,
+      std::vector<std::string>& command_args) noexcept {
+    static const std::vector<AssemblyInstruction> empty_vector;
+    std::vector<AssemblyInstruction> result;
+
+    const auto it = s_command_assemblers.find(command_name);
+    if (it != s_command_assemblers.end()) {
+      auto arg_placer = CreateArgumentPlacer(command_args);
+      result.insert(result.end(), arg_placer.begin(), arg_placer.end());
+      result.insert(result.end(), it->second.begin(), it->second.end());
+      return result;
     }
     return empty_vector;
   }
@@ -93,6 +110,8 @@ private:
   static void InitializeRandomOperations();
 
   static void InitializeMemoryOperations();
+
+  static void InitializeLocalDataOperations();
 
   static void AddStandardAssembly(std::string_view command_name, std::vector<AssemblyInstruction>&& instructions);
 };

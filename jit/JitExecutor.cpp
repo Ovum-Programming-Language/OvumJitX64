@@ -11,12 +11,11 @@ namespace ovum::vm::jit {
 static uint64_t datatemp[512];
 
 JitExecutor::JitExecutor(std::shared_ptr<std::vector<TokenPtr>> jit_body) : oil_body(std::move(jit_body)),
-m_func(std::nullopt) {
+m_func(std::nullopt), m_machinecode(nullptr) {
 }
 
 bool JitExecutor::TryCompile() {
-  std::cout << "TryComplie Called" << std::endl;
-
+  std::cout << "TryCompile called" << std::endl;
   if (m_func) {
     // Compilation already done
     return true;
@@ -45,22 +44,23 @@ bool JitExecutor::TryCompile() {
 
   // Compile oil bytecode to assembler code
   auto asm_body = OilCommandAsmCompiler::Compile(packed_oil_body);
-  
-  //for (auto c : asm_body) {
-  //  std::cout << (uint64_t)c.command << std::endl;
-  //}
 
   // Compile assembler code to machine code
   AsmToBytes asmtobytes;
   auto machinecode_body = asmtobytes.Convert(asm_body);
 
   if (!machinecode_body){
-    // Something whent wrong during assembler compilation
+    // Something went wrong during assembler compilation
     return false;
   }
 
-  // Saving the compilation result and wrapping it as a functor
-  m_func = MachineCodeFunctionSolved(code_vector(machinecode_body.value()));
+  std:: cout << "Machine Bytes: " << std::endl;
+  for (auto c : machinecode_body.value()) {
+    std::cout << std::hex << (uint64_t)c << " ";
+  }
+  std::cout << std::endl;
+  
+  m_machinecode = std::make_shared<code_vector>(machinecode_body.value());
 
   return true;
 }
@@ -69,7 +69,12 @@ std::expected<void, std::runtime_error> JitExecutor::Run(execution_tree::PassedE
   if (!m_func) {
     return std::unexpected(std::runtime_error("JitExecutor::Run: compiled function not found! Call TryCompile first!"));
   }
-  MachineCodeRunner::Run(m_func.value(), data);
+
+  auto _m_func = MachineCodeFunctionSolved(*m_machinecode);
+
+  MachineCodeRunner::Run(_m_func, data);
+
+  return {};
 }
 
 } // namespace ovum::vm::jit

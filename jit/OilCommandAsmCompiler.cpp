@@ -1,11 +1,21 @@
 #include "OilCommandAsmCompiler.hpp"
 
+#include <iostream>
+
 namespace ovum::vm::jit {
 
 static const std::vector<AssemblyInstruction> prologue = {
   // Save RSP to restore it before RET
+  #ifdef _WIN32
+  {AsmCommand::MOV, {Register::R14, Register::RCX}},
+  {AsmCommand::MOV, {Register::R12, Register::RDX}},
+  {AsmCommand::MOV, {Register::R13, Register::R8}},
+  #else
   {AsmCommand::MOV, {Register::R14, Register::RDI}},
-  {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP)), Register::RSP}}
+  {AsmCommand::MOV, {Register::R12, Register::RSI}},
+  {AsmCommand::MOV, {Register::R13, Register::RDX}},
+  #endif
+  {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP)), Register::RSP}},
 };
 
 static const std::vector<AssemblyInstruction> epilogue = {
@@ -153,6 +163,7 @@ void OilCommandAsmCompiler::InitializeStandardAssemblers() {
   //InitializeConversionOperations();
   //InitializeControlFlowOperations();
   InitializeInputOutputOperations();
+  InitializeLocalDataOperations();
   //InitializeSystemOperations();
   //InitializeFileOperations();
   //InitializeTimeOperations();
@@ -162,15 +173,37 @@ void OilCommandAsmCompiler::InitializeStandardAssemblers() {
   //InitializeMemoryOperations();
 }
 
-const std::vector<AssemblyInstruction>&& OilCommandAsmCompiler::Compile(std::vector<PackedOilCommand>& packed_oil_body) {
+std::vector<AssemblyInstruction> CreateArgumentPlacer(std::vector<std::string> args) {
+  std::cout << "Called Create Arg placer with args size: " << args.size() << std::endl;
+  if (args.size() == 1) {
+    return {
+      {AsmCommand::MOV, {Register::R11, make_imm_arg(std::stoi(args[0]))}}
+    };
+  }
+  if (args.size() == 2) {
+    return {
+      {AsmCommand::MOV, {Register::R11, make_imm_arg(std::stoi(args[0]))}},
+      {AsmCommand::MOV, {Register::R10, make_imm_arg(std::stoi(args[1]))}}
+    };
+  }
+  return {};
+}
+
+const std::vector<AssemblyInstruction> OilCommandAsmCompiler::Compile(std::vector<PackedOilCommand>& packed_oil_body) {
   std::vector<AssemblyInstruction> result;
   result.insert(result.end(), prologue.begin(), prologue.end());
   for (auto poc : packed_oil_body) {
-    auto cmd = GetAssemblyForCommand(poc.command_name);
-    result.insert(result.end(), cmd.begin(), cmd.end());
+    if (poc.arguments.empty()) {
+      auto cmd = GetAssemblyForCommand(poc.command_name);
+      result.insert(result.end(), cmd.begin(), cmd.end());
+    } else {
+      auto cmd = GetAssemblyForCommandWithArgs(poc.command_name, poc.arguments);
+      result.insert(result.end(), cmd.begin(), cmd.end());
+    }
   }
+  //result.insert(result.end(), caller.begin(), caller.end());
   result.insert(result.end(), epilogue.begin(), epilogue.end());
-  return std::move(result);
+  return result;
 }
 
 
@@ -178,6 +211,7 @@ void OilCommandAsmCompiler::AddStandardAssembly(std::string_view command_name,
                                                 std::vector<AssemblyInstruction>&& instructions) {
   s_command_assemblers.emplace(command_name, std::move(instructions));
 }
+
 /*
 void OilCommandAsmCompiler::InitializeStringOperations() {
     std::vector<AssemblyInstruction> string_concat_asm = {
@@ -220,7 +254,7 @@ void OilCommandAsmCompiler::InitializeControlFlowOperations() {
 void OilCommandAsmCompiler::InitializeInputOutputOperations() {
     AddStandardAssembly("Print", std::move(CreateOperationCaller(CalledOperationCode::PRINT)));
     
-    AddStandardAssembly("PrintLine", std::move(CreateOperationCaller(CalledOperationCode::PRINT)));
+    AddStandardAssembly("PrintLine", std::move(CreateOperationCaller(CalledOperationCode::PRINT_LINE)));
 
     // PrintLine, ReadLine, ReadChar, ReadInt, ReadFloat аналогично...
 }

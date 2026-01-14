@@ -11,9 +11,9 @@ namespace ovum::vm::jit {
 
 template<typename Func>
 class MachineCodeFunction {
-  ExecutableMemory memory;
     
 public:
+  ExecutableMemory memory;
   MachineCodeFunction(const code_vector& code) : memory(code.size()) {
     memcpy(memory.data(), code.data(), code.size());
     memory.make_executable();

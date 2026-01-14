@@ -3,12 +3,13 @@
 namespace ovum::vm::jit {
 
 void OilCommandAsmCompiler::InitializeFloatOperations() {
+    // FloatAdd: a + b
     std::vector<AssemblyInstruction> float_add_asm = {
         {AsmCommand::POP, {Register::RAX}},
         {AsmCommand::MOVQ, {Register::XMM1, Register::RAX}},
         {AsmCommand::POP, {Register::RAX}},
         {AsmCommand::MOVQ, {Register::XMM0, Register::RAX}},
-        {AsmCommand::ADD, {Register::XMM0, Register::XMM1}},
+        {AsmCommand::ADDSD, {Register::XMM0, Register::XMM1}},
         {AsmCommand::MOVQ, {Register::RAX, Register::XMM0}},
         {AsmCommand::PUSH, {Register::RAX}}
     };
@@ -20,7 +21,7 @@ void OilCommandAsmCompiler::InitializeFloatOperations() {
         {AsmCommand::MOVQ, {Register::XMM1, Register::RAX}},
         {AsmCommand::POP, {Register::RAX}},
         {AsmCommand::MOVQ, {Register::XMM0, Register::RAX}},
-        {AsmCommand::SUB, {Register::XMM0, Register::XMM1}},
+        {AsmCommand::SUBSD, {Register::XMM0, Register::XMM1}},
         {AsmCommand::MOVQ, {Register::RAX, Register::XMM0}},
         {AsmCommand::PUSH, {Register::RAX}}
     };
@@ -32,7 +33,7 @@ void OilCommandAsmCompiler::InitializeFloatOperations() {
         {AsmCommand::MOVQ, {Register::XMM1, Register::RAX}},
         {AsmCommand::POP, {Register::RAX}},
         {AsmCommand::MOVQ, {Register::XMM0, Register::RAX}},
-        {AsmCommand::MUL, {Register::XMM0, Register::XMM1}},
+        {AsmCommand::MULSD, {Register::XMM0, Register::XMM1}},
         {AsmCommand::MOVQ, {Register::RAX, Register::XMM0}},
         {AsmCommand::PUSH, {Register::RAX}}
     };
@@ -44,7 +45,7 @@ void OilCommandAsmCompiler::InitializeFloatOperations() {
         {AsmCommand::MOVQ, {Register::XMM1, Register::RAX}},
         {AsmCommand::POP, {Register::RAX}},
         {AsmCommand::MOVQ, {Register::XMM0, Register::RAX}},
-        {AsmCommand::DIV, {Register::XMM0, Register::XMM1}},
+        {AsmCommand::DIVSD, {Register::XMM0, Register::XMM1}},
         {AsmCommand::MOVQ, {Register::RAX, Register::XMM0}},
         {AsmCommand::PUSH, {Register::RAX}}
     };
@@ -55,7 +56,7 @@ void OilCommandAsmCompiler::InitializeFloatOperations() {
         {AsmCommand::POP, {Register::RAX}},
         {AsmCommand::MOVQ, {Register::XMM0, Register::RAX}},
         {AsmCommand::XOR, {Register::XMM1, Register::XMM1}},
-        {AsmCommand::SUB, {Register::XMM1, Register::XMM0}},
+        {AsmCommand::SUBSD, {Register::XMM1, Register::XMM0}},
         {AsmCommand::MOVQ, {Register::RAX, Register::XMM1}},
         {AsmCommand::PUSH, {Register::RAX}}
     };

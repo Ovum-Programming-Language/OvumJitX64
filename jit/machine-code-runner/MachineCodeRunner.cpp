@@ -1,5 +1,7 @@
 #include "MachineCodeRunner.hpp"
 
+#include <iostream>
+
 namespace ovum::vm::jit {
 
 void MachineCodeRunner::Run(MachineCodeFunction<void(void*, uint64_t, void*)>& machine_code_func, execution_tree::PassedExecutionData& data) {
@@ -34,14 +36,18 @@ void MachineCodeRunner::Run(MachineCodeFunction<void(void*, uint64_t, void*)>& m
       ++argv_ptr_copy;
     }
   }
+
+  std::cout << "Run: running m_func" << std::endl;
   
   machine_code_func(reinterpret_cast<void*>(&data_buffer),
                     reinterpret_cast<uint64_t>(argc),
                     reinterpret_cast<void*>(argv));
 
-  if (argv) {
-    delete argv;
-  }
+  std::cout << "Run: func end" << std::endl;
+
+  //if (argv) {
+  //  delete argv;
+  //}
 }
 
 } // namespace ovum::vm::jit

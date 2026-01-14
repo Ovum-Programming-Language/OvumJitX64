@@ -7,11 +7,13 @@
 #include <tokens/Token.hpp>
 
 #include "lib/executor/IJitExecutorFactory.hpp"
+#include <jit/OilCommandAsmCompiler.hpp>
 
 namespace ovum::vm::jit {
 
 class JitExecutorFactory : public executor::IJitExecutorFactory {
 public:
+  JitExecutorFactory();
   [[nodiscard]] std::unique_ptr<executor::IJitExecutor> Create(const std::string&,
                                                                std::shared_ptr<std::vector<TokenPtr>>) const override;
 };
