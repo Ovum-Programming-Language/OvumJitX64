@@ -37,10 +37,10 @@ std::expected<code_vector, std::runtime_error> AsmToBytes::Convert(
       return std::unexpected(encode_result.error());
     }
 
-    for (auto c : output) {
-      std::cout << std::hex << (uint64_t)c << " ";
-    }
-    std::cout << std::endl;
+    //for (auto c : output) {
+    //  std::cout << std::hex << (uint64_t)c << " ";
+    //}
+    //std::cout << std::endl;
     size_t encoded_size = output.size() - before;
     current_position_ += encoded_size;
   }

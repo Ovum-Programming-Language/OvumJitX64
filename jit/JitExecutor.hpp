@@ -13,9 +13,19 @@ namespace ovum::vm::jit {
 using MachineCodeFunctionSolved = MachineCodeFunction<void(void*, uint64_t, void*)>;
 using MachineCodeFunctionSolvedOpt = std::optional<MachineCodeFunctionSolved>;
 
+enum JitExecutorResultType : uint8_t {
+  PTR,
+  FLOAT,
+  INT64,
+  BYTE,
+  BOOL,
+  CHAR,
+  VOID
+};
+
 class JitExecutor : public executor::IJitExecutor {
 public:
-  JitExecutor(std::shared_ptr<std::vector<TokenPtr>> jit_body);
+  JitExecutor(std::shared_ptr<std::vector<TokenPtr>> jit_body, const std::string& jit_function_name);
 
   [[nodiscard]] bool TryCompile() override;
 
@@ -25,6 +35,7 @@ private:
   std::shared_ptr<std::vector<TokenPtr>> oil_body;
   std::shared_ptr<code_vector> m_machinecode;
   MachineCodeFunctionSolvedOpt m_func;
+  JitExecutorResultType res_type = JitExecutorResultType::PTR;
 };
 
 } // namespace ovum::vm::jit

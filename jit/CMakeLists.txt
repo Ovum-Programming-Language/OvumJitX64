@@ -12,9 +12,9 @@ add_library(jit STATIC
         ./oil-to-asm-realisation/OilToAsmLocalDataOperations.cpp
         ./oil-to-asm-realisation/AsmComplexOperationManager.cpp
         ./oil-to-asm-realisation/AsmToBytes.cpp
+        ./oil-to-asm-realisation/optimisers/PushPopOptimiser.cpp
         ./machine-code-runner/ExecutableMemory.cpp
         ./machine-code-runner/MachineCodeFunction.cpp
-        ./machine-code-runner/MachineCodeRunner.cpp
         ./machine-code-runner/AsmDataBuffer.cpp
 )
 

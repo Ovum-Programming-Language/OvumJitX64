@@ -177,7 +177,7 @@ void OilCommandAsmCompiler::InitializeStandardAssemblers() {
 }
 
 std::vector<AssemblyInstruction> CreateArgumentPlacer(std::vector<std::string> args) {
-  std::cout << "Called Create Arg placer with args size: " << args.size() << std::endl;
+  //std::cout << "Called Create Arg placer with args size: " << args.size() << std::endl;
   if (args.size() == 1) {
     return {
       {AsmCommand::MOV, {Register::R11, make_imm_arg(std::stoi(args[0]))}}
