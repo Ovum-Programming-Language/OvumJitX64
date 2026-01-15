@@ -5,25 +5,35 @@
 namespace ovum::vm::jit {
 
 static const std::vector<AssemblyInstruction> prologue = {
-// Save RSP to restore it before RET
+    // Preserve callee-saved registers we clobber (RBX, R12, R13, R14)
+    {AsmCommand::PUSH, {Register::RBX}},
+    {AsmCommand::PUSH, {Register::R12}},
+    {AsmCommand::PUSH, {Register::R13}},
+    {AsmCommand::PUSH, {Register::R14}},
+// Initialize our working registers from function args
 #ifdef _WIN32
-    {AsmCommand::MOV, {Register::R14, Register::RCX}},
-    {AsmCommand::MOV, {Register::R12, Register::RDX}},
-    {AsmCommand::MOV, {Register::R13, Register::R8}},
+    {AsmCommand::MOV, {Register::R14, Register::RCX}}, // data buffer
+    {AsmCommand::MOV, {Register::R12, Register::RDX}}, // argc
+    {AsmCommand::MOV, {Register::R13, Register::R8}},  // argv
 #else
-    {AsmCommand::MOV, {Register::R14, Register::RDI}},
-    {AsmCommand::MOV, {Register::R12, Register::RSI}},
-    {AsmCommand::MOV, {Register::R13, Register::RDX}},
+    {AsmCommand::MOV, {Register::R14, Register::RDI}}, // data buffer
+    {AsmCommand::MOV, {Register::R12, Register::RSI}}, // argc
+    {AsmCommand::MOV, {Register::R13, Register::RDX}}, // argv
 #endif
+    // Save RSP to restore it before RET (after saving callee-saved regs)
     {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP)), Register::RSP}},
 };
 
 static const std::vector<AssemblyInstruction> epilogue = {
-    // Save result value
+    // Save result value from evaluation stack
     {AsmCommand::POP, {Register::RAX}},
     {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetResultOffset()), Register::RAX}},
-    // Restore RSP before RET
+    // Drop temporary evaluation stack usage and restore saved callee-saved regs
     {AsmCommand::MOV, {Register::RSP, addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP))}},
+    {AsmCommand::POP, {Register::R14}},
+    {AsmCommand::POP, {Register::R13}},
+    {AsmCommand::POP, {Register::R12}},
+    {AsmCommand::POP, {Register::RBX}},
     {AsmCommand::RET, {}}};
 
 const std::array<std::string_view, OilCommandAsmCompiler::s_all_command_num>

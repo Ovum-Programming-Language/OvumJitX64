@@ -2015,13 +2015,14 @@ void AsmToBytes::EncodeStackOp(const AssemblyInstruction& instr, std::vector<uin
           output.push_back(rex);
         }
 
+        uint8_t enc = EncodeRegister(reg) & 0x07; // low 3 bits for opcode
         if (reg_size == 64) {
-          output.push_back(0x50 | EncodeRegister(reg)); // PUSH r64
+          output.push_back(0x50 | enc); // PUSH r64
         } else if (reg_size == 32) {
-          output.push_back(0x50 | EncodeRegister(reg)); // PUSH r32
+          output.push_back(0x50 | enc); // PUSH r32
         } else if (reg_size == 16) {
           output.push_back(0x66);
-          output.push_back(0x50 | EncodeRegister(reg)); // PUSH r16
+          output.push_back(0x50 | enc); // PUSH r16
         }
       } else if (std::holds_alternative<int64_t>(arg)) {
         int64_t imm = std::get<int64_t>(arg);
@@ -2049,13 +2050,14 @@ void AsmToBytes::EncodeStackOp(const AssemblyInstruction& instr, std::vector<uin
           output.push_back(rex);
         }
 
+        uint8_t enc = EncodeRegister(*reg) & 0x07; // low 3 bits
         if (reg_size == 64) {
-          output.push_back(0x58 | EncodeRegister(*reg)); // POP r64
+          output.push_back(0x58 | enc); // POP r64
         } else if (reg_size == 32) {
-          output.push_back(0x58 | EncodeRegister(*reg)); // POP r32
+          output.push_back(0x58 | enc); // POP r32
         } else if (reg_size == 16) {
           output.push_back(0x66);
-          output.push_back(0x58 | EncodeRegister(*reg)); // POP r16
+          output.push_back(0x58 | enc); // POP r16
         }
       }
     }

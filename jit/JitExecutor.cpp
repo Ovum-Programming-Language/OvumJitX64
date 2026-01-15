@@ -62,6 +62,8 @@ bool JitExecutor::TryCompile() {
 
   m_machinecode = std::make_shared<code_vector>(machinecode_body.value());
 
+  // Compiled successfully
+
   // std::cout << "TryCompile success" << std::endl;
   return true;
 }
@@ -71,6 +73,8 @@ std::expected<void, std::runtime_error> JitExecutor::Run(execution_tree::PassedE
     return std::unexpected(std::runtime_error("JitExecutor::Run: compiled function not found! Call TryCompile first!"));
   }
 
+  // Construct the machine-code wrapper locally for each run to avoid
+  // lifetime/aliasing issues in optimized builds.
   auto _m_func = MachineCodeFunctionSolved(*m_machinecode);
 
   if (data.memory.stack_frames.empty()) {
@@ -110,6 +114,10 @@ std::expected<void, std::runtime_error> JitExecutor::Run(execution_tree::PassedE
   // std::cout << "Run: running m_func" << std::endl;
 
   AsmDataBuffer data_buffer;
+  // Ensure the function pointer is invoked with the correct calling convention
+  // and argument types. On System V ABI (Linux), the first three arguments are
+  // passed via RDI, RSI, and RDX respectively, which matches the signature
+  // void(void*, uint64_t, void*).
   _m_func(reinterpret_cast<void*>(&data_buffer), static_cast<uint64_t>(argc), reinterpret_cast<void*>(argv));
 
   // std::cout << "Run: func end, with result: " << std::hex << data_buffer.Result << std::endl;
