@@ -13,8 +13,7 @@ ExecutableMemory::ExecutableMemory(size_t size) : size_(size) {
 #ifdef _WIN32
   data_ = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
 #else
-  data_ = mmap(nullptr, size, PROT_READ | PROT_WRITE, 
-              MAP_PRIVATE | MAP_ANON, -1, 0);
+  data_ = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
 #endif
 }
 

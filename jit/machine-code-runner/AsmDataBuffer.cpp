@@ -34,7 +34,7 @@ uint64_t AsmDataBuffer::GetOffset(Register reg) {
     case Register::RSP:
       return 72;
       break;
-    #ifdef _WIN32
+#ifdef _WIN32
     case Register::XMM0:
       return 32;
       break;
@@ -53,7 +53,7 @@ uint64_t AsmDataBuffer::GetOffset(Register reg) {
     case Register::XMM5:
       return 72;
       break;
-    #endif
+#endif
     default:
       return 80;
   }

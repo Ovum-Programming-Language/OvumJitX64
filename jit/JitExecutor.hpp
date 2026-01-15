@@ -3,25 +3,17 @@
 
 #include <tokens/Token.hpp>
 
-#include "jit/AsmCompiler.hpp"
-#include "lib/executor/IJitExecutor.hpp"
 #include <jit/machine-code-runner/MachineCodeFunction.hpp>
 #include <optional>
+#include "jit/AsmCompiler.hpp"
+#include "lib/executor/IJitExecutor.hpp"
 
 namespace ovum::vm::jit {
 
 using MachineCodeFunctionSolved = MachineCodeFunction<void(void*, uint64_t, void*)>;
 using MachineCodeFunctionSolvedOpt = std::optional<MachineCodeFunctionSolved>;
 
-enum JitExecutorResultType : uint8_t {
-  PTR,
-  FLOAT,
-  INT64,
-  BYTE,
-  BOOL,
-  CHAR,
-  kVoid
-};
+enum JitExecutorResultType : uint8_t { PTR, FLOAT, INT64, BYTE, BOOL, CHAR, kVoid };
 
 class JitExecutor : public executor::IJitExecutor {
 public:

@@ -20,14 +20,14 @@ struct AsmDataBuffer {
   uint64_t RegisterR11DataCell = 0; //| 64
   uint64_t RegisterRSPDataCell = 0; //| 72
   uint64_t Result = 0;              //| 80
-  #ifdef _WIN32
+#ifdef _WIN32
   uint64_t RegisterXMM0DataCell = 0; //| 88
   uint64_t RegisterXMM1DataCell = 0; //| 96
   uint64_t RegisterXMM2DataCell = 0; //| 104
   uint64_t RegisterXMM3DataCell = 0; //| 112
   uint64_t RegisterXMM4DataCell = 0; //| 120
   uint64_t RegisterXMM5DataCell = 0; //| 128
-  #endif
+#endif
 
   AsmDataBuffer() = default;
   ~AsmDataBuffer() = default;
