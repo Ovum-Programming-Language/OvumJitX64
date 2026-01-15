@@ -12,7 +12,7 @@ void* AsmComplexOperationManager(void* rsp, CalledOperationCode op_code) {
   std::cout << "Called operation with op_code" << (uint64_t)op_code << std::endl;
 
   std::cout << "returning to asm code" << std::endl;
-  return rsp + 32;
+  return static_cast<char*>(rsp) + 32;
 }
 
 } // namespace ovum::vm::jit

@@ -111,7 +111,7 @@ std::expected<void, std::runtime_error> JitExecutor::Run(execution_tree::PassedE
   
   AsmDataBuffer data_buffer;
   _m_func(reinterpret_cast<void*>(&data_buffer),
-          reinterpret_cast<uint64_t>(argc),
+          static_cast<uint64_t>(argc),
           reinterpret_cast<void*>(argv));
 
   //std::cout << "Run: func end, with result: " << std::hex << data_buffer.Result << std::endl;

@@ -6,7 +6,7 @@ std::vector<AssemblyInstruction> optimize_push_pop_pairs(
   const std::vector<AssemblyInstruction>& instructions) {
   
   std::vector<AssemblyInstruction> optimized;
-  std::vector<std::pair<int, int>> push_pop_pairs; // пары индексов (push, pop)
+  std::vector<std::pair<size_t, size_t>> push_pop_pairs; // пары индексов (push, pop)
   
   // Сначала находим все пары PUSH RAX / POP RAX
   for (size_t i = 0; i < instructions.size(); ++i) {

@@ -23,7 +23,8 @@ public:
     return reinterpret_cast<Func*>(memory.data());
   }
   
-  auto operator()(auto... args) const {
+  template<typename... Args>
+  auto operator()(Args... args) const -> decltype(get()(args...)) {
     return get()(args...);
   }
 };
