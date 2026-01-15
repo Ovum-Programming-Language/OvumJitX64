@@ -6,8 +6,8 @@
 
 #include <tokens/Token.hpp>
 
-#include "lib/executor/IJitExecutorFactory.hpp"
 #include <jit/OilCommandAsmCompiler.hpp>
+#include "lib/executor/IJitExecutorFactory.hpp"
 
 namespace ovum::vm::jit {
 

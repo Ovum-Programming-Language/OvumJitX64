@@ -8,10 +8,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "AsmData.hpp"
-#include <jit/oil-to-asm-realisation/AsmComplexOperationManager.hpp>
 #include <jit/AsmCompiler.hpp>
 #include <jit/machine-code-runner/AsmDataBuffer.hpp>
+#include <jit/oil-to-asm-realisation/AsmComplexOperationManager.hpp>
+#include "AsmData.hpp"
 
 namespace ovum::vm::jit {
 
@@ -45,8 +45,7 @@ public:
   }
 
   [[nodiscard]] static const std::vector<AssemblyInstruction> GetAssemblyForCommandWithArgs(
-      std::string_view command_name,
-      std::vector<std::string>& command_args) noexcept {
+      std::string_view command_name, std::vector<std::string>& command_args) noexcept {
     static const std::vector<AssemblyInstruction> empty_vector;
     std::vector<AssemblyInstruction> result;
 

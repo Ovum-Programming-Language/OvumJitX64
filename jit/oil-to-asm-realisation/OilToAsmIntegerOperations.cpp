@@ -43,21 +43,18 @@ void OilCommandAsmCompiler::InitializeIntegerOperations() {
   AddStandardAssembly("IntModulo", std::move(int_modulo_asm));
 
   // IntNegate: -a
-  std::vector<AssemblyInstruction> int_negate_asm = {{AsmCommand::POP, {Register::RAX}},
-                                                     {AsmCommand::NEG, {Register::RAX}},
-                                                     {AsmCommand::PUSH, {Register::RAX}}};
+  std::vector<AssemblyInstruction> int_negate_asm = {
+      {AsmCommand::POP, {Register::RAX}}, {AsmCommand::NEG, {Register::RAX}}, {AsmCommand::PUSH, {Register::RAX}}};
   AddStandardAssembly("IntNegate", std::move(int_negate_asm));
 
   // IntIncrement: a + 1
-  std::vector<AssemblyInstruction> int_increment_asm = {{AsmCommand::POP, {Register::RAX}},
-                                                        {AsmCommand::INC, {Register::RAX}},
-                                                        {AsmCommand::PUSH, {Register::RAX}}};
+  std::vector<AssemblyInstruction> int_increment_asm = {
+      {AsmCommand::POP, {Register::RAX}}, {AsmCommand::INC, {Register::RAX}}, {AsmCommand::PUSH, {Register::RAX}}};
   AddStandardAssembly("IntIncrement", std::move(int_increment_asm));
 
   // IntDecrement: a - 1
-  std::vector<AssemblyInstruction> int_decrement_asm = {{AsmCommand::POP, {Register::RAX}},
-                                                        {AsmCommand::DEC, {Register::RAX}},
-                                                        {AsmCommand::PUSH, {Register::RAX}}};
+  std::vector<AssemblyInstruction> int_decrement_asm = {
+      {AsmCommand::POP, {Register::RAX}}, {AsmCommand::DEC, {Register::RAX}}, {AsmCommand::PUSH, {Register::RAX}}};
   AddStandardAssembly("IntDecrement", std::move(int_decrement_asm));
 
   // IntEqual: a == b
@@ -111,14 +108,13 @@ void OilCommandAsmCompiler::InitializeIntegerOperations() {
   AddStandardAssembly("IntGreaterThan", std::move(int_greater_than_asm));
 
   // IntGreaterEqual: a >= b
-  std::vector<AssemblyInstruction> int_greater_equal_asm = {
-      {AsmCommand::POP, {Register::RBX}},
-      {AsmCommand::POP, {Register::RAX}},
-      {AsmCommand::CMP, {Register::RAX, Register::RBX}},
-      {AsmCommand::MOV, {Register::RAX, static_cast<int64_t>(0)}},
-      {AsmCommand::SETNL, {Register::AL}},
-      {AsmCommand::MOVZX, {Register::RAX, Register::AL}},
-      {AsmCommand::PUSH, {Register::RAX}}};
+  std::vector<AssemblyInstruction> int_greater_equal_asm = {{AsmCommand::POP, {Register::RBX}},
+                                                            {AsmCommand::POP, {Register::RAX}},
+                                                            {AsmCommand::CMP, {Register::RAX, Register::RBX}},
+                                                            {AsmCommand::MOV, {Register::RAX, static_cast<int64_t>(0)}},
+                                                            {AsmCommand::SETNL, {Register::AL}},
+                                                            {AsmCommand::MOVZX, {Register::RAX, Register::AL}},
+                                                            {AsmCommand::PUSH, {Register::RAX}}};
   AddStandardAssembly("IntGreaterEqual", std::move(int_greater_equal_asm));
 
   // IntAnd: a & b
@@ -143,9 +139,8 @@ void OilCommandAsmCompiler::InitializeIntegerOperations() {
   AddStandardAssembly("IntXor", std::move(int_xor_asm));
 
   // IntNot: ~a
-  std::vector<AssemblyInstruction> int_not_asm = {{AsmCommand::POP, {Register::RAX}},
-                                                  {AsmCommand::NOT, {Register::RAX}},
-                                                  {AsmCommand::PUSH, {Register::RAX}}};
+  std::vector<AssemblyInstruction> int_not_asm = {
+      {AsmCommand::POP, {Register::RAX}}, {AsmCommand::NOT, {Register::RAX}}, {AsmCommand::PUSH, {Register::RAX}}};
   AddStandardAssembly("IntNot", std::move(int_not_asm));
 
   // IntLeftShift: a << b

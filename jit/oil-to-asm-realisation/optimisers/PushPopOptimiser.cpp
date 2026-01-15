@@ -2,24 +2,18 @@
 
 namespace ovum::vm::jit {
 
-std::vector<AssemblyInstruction> optimize_push_pop_pairs(
-  const std::vector<AssemblyInstruction>& instructions) {
-  
+std::vector<AssemblyInstruction> optimize_push_pop_pairs(const std::vector<AssemblyInstruction>& instructions) {
   std::vector<AssemblyInstruction> optimized;
   std::vector<std::pair<int, int>> push_pop_pairs; // пары индексов (push, pop)
-  
+
   // Сначала находим все пары PUSH RAX / POP RAX
   for (size_t i = 0; i < instructions.size(); ++i) {
-    if (instructions[i].command == AsmCommand::PUSH &&
-      !instructions[i].arguments.empty() &&
-      instructions[i].get_argument<Register>(0) == Register::RAX) {
-      
+    if (instructions[i].command == AsmCommand::PUSH && !instructions[i].arguments.empty() &&
+        instructions[i].get_argument<Register>(0) == Register::RAX) {
       // Ищем соответствующий POP RAX
       for (size_t j = i + 1; j < instructions.size(); ++j) {
-        if (instructions[j].command == AsmCommand::POP &&
-          !instructions[j].arguments.empty() &&
-          instructions[j].get_argument<Register>(0) == Register::RAX) {
-          
+        if (instructions[j].command == AsmCommand::POP && !instructions[j].arguments.empty() &&
+            instructions[j].get_argument<Register>(0) == Register::RAX) {
           // Проверяем, что между ними нет других операций с RAX
           // которые бы нарушали возможность удаления
           bool can_remove = true;
@@ -35,9 +29,10 @@ std::vector<AssemblyInstruction> optimize_push_pop_pairs(
                 }
               }
             }
-            if (!can_remove) break;
+            if (!can_remove)
+              break;
           }
-          
+
           if (can_remove) {
             push_pop_pairs.emplace_back(i, j);
             i = j; // пропускаем до конца этой пары
@@ -47,20 +42,20 @@ std::vector<AssemblyInstruction> optimize_push_pop_pairs(
       }
     }
   }
-  
+
   // Теперь строим оптимизированный список, пропуская удаляемые инструкции
   std::vector<bool> to_remove(instructions.size(), false);
   for (const auto& pair : push_pop_pairs) {
     to_remove[pair.first] = true;
     to_remove[pair.second] = true;
   }
-  
+
   for (size_t i = 0; i < instructions.size(); ++i) {
     if (!to_remove[i]) {
       optimized.push_back(instructions[i]);
     }
   }
-  
+
   return optimized;
 }
 

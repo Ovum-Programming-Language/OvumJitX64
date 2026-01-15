@@ -1,9 +1,9 @@
 #ifndef JIT_EXECUTABLEMEMORY_HPP
 #define JIT_EXECUTABLEMEMORY_HPP
 
-#include <vector>
 #include <cstdint>
 #include <cstring>
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -21,14 +21,14 @@ public:
 class ExecutableMemory {
   void* data_;
   size_t size_;
-    
+
 public:
   ExecutableMemory(size_t size);
-    
+
   ~ExecutableMemory();
 
   void* data() const;
-    
+
   void make_executable();
 };
 

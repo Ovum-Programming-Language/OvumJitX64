@@ -5,27 +5,26 @@
 namespace ovum::vm::jit {
 
 static const std::vector<AssemblyInstruction> prologue = {
-  // Save RSP to restore it before RET
-  #ifdef _WIN32
-  {AsmCommand::MOV, {Register::R14, Register::RCX}},
-  {AsmCommand::MOV, {Register::R12, Register::RDX}},
-  {AsmCommand::MOV, {Register::R13, Register::R8}},
-  #else
-  {AsmCommand::MOV, {Register::R14, Register::RDI}},
-  {AsmCommand::MOV, {Register::R12, Register::RSI}},
-  {AsmCommand::MOV, {Register::R13, Register::RDX}},
-  #endif
-  {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP)), Register::RSP}},
+// Save RSP to restore it before RET
+#ifdef _WIN32
+    {AsmCommand::MOV, {Register::R14, Register::RCX}},
+    {AsmCommand::MOV, {Register::R12, Register::RDX}},
+    {AsmCommand::MOV, {Register::R13, Register::R8}},
+#else
+    {AsmCommand::MOV, {Register::R14, Register::RDI}},
+    {AsmCommand::MOV, {Register::R12, Register::RSI}},
+    {AsmCommand::MOV, {Register::R13, Register::RDX}},
+#endif
+    {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP)), Register::RSP}},
 };
 
 static const std::vector<AssemblyInstruction> epilogue = {
-  // Save result value
-  {AsmCommand::POP, {Register::RAX}},
-  {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetResultOffset()), Register::RAX}},
-  // Restore RSP before RET
-  {AsmCommand::MOV, {Register::RSP, addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP))}},
-  {AsmCommand::RET, {}}
-};
+    // Save result value
+    {AsmCommand::POP, {Register::RAX}},
+    {AsmCommand::MOV, {addr(Register::R14, AsmDataBuffer::GetResultOffset()), Register::RAX}},
+    // Restore RSP before RET
+    {AsmCommand::MOV, {Register::RSP, addr(Register::R14, AsmDataBuffer::GetOffset(Register::RSP))}},
+    {AsmCommand::RET, {}}};
 
 const std::array<std::string_view, OilCommandAsmCompiler::s_all_command_num>
     OilCommandAsmCompiler::s_all_command_names = {"PushNull",
@@ -162,32 +161,28 @@ void OilCommandAsmCompiler::InitializeStandardAssemblers() {
   InitializeFloatOperations();
   InitializeByteOperations();
   InitializeBooleanOperations();
-  //InitializeStringOperations();
-  //InitializeConversionOperations();
-  //InitializeControlFlowOperations();
+  // InitializeStringOperations();
+  // InitializeConversionOperations();
+  // InitializeControlFlowOperations();
   InitializeInputOutputOperations();
   InitializeLocalDataOperations();
-  //InitializeSystemOperations();
-  //InitializeFileOperations();
-  //InitializeTimeOperations();
-  //InitializeProcessOperations();
-  //InitializeOSOperations();
-  //InitializeRandomOperations();
-  //InitializeMemoryOperations();
+  // InitializeSystemOperations();
+  // InitializeFileOperations();
+  // InitializeTimeOperations();
+  // InitializeProcessOperations();
+  // InitializeOSOperations();
+  // InitializeRandomOperations();
+  // InitializeMemoryOperations();
 }
 
 std::vector<AssemblyInstruction> CreateArgumentPlacer(std::vector<std::string> args) {
-  //std::cout << "Called Create Arg placer with args size: " << args.size() << std::endl;
+  // std::cout << "Called Create Arg placer with args size: " << args.size() << std::endl;
   if (args.size() == 1) {
-    return {
-      {AsmCommand::MOV, {Register::R11, make_imm_arg(std::stoi(args[0]))}}
-    };
+    return {{AsmCommand::MOV, {Register::R11, make_imm_arg(std::stoi(args[0]))}}};
   }
   if (args.size() == 2) {
-    return {
-      {AsmCommand::MOV, {Register::R11, make_imm_arg(std::stoi(args[0]))}},
-      {AsmCommand::MOV, {Register::R10, make_imm_arg(std::stoi(args[1]))}}
-    };
+    return {{AsmCommand::MOV, {Register::R11, make_imm_arg(std::stoi(args[0]))}},
+            {AsmCommand::MOV, {Register::R10, make_imm_arg(std::stoi(args[1]))}}};
   }
   return {};
 }
@@ -204,11 +199,10 @@ const std::vector<AssemblyInstruction> OilCommandAsmCompiler::Compile(std::vecto
       result.insert(result.end(), cmd.begin(), cmd.end());
     }
   }
-  //result.insert(result.end(), caller.begin(), caller.end());
+  // result.insert(result.end(), caller.begin(), caller.end());
   result.insert(result.end(), epilogue.begin(), epilogue.end());
   return result;
 }
-
 
 void OilCommandAsmCompiler::AddStandardAssembly(std::string_view command_name,
                                                 std::vector<AssemblyInstruction>&& instructions) {
@@ -255,11 +249,11 @@ void OilCommandAsmCompiler::InitializeControlFlowOperations() {
 }*/
 
 void OilCommandAsmCompiler::InitializeInputOutputOperations() {
-    AddStandardAssembly("Print", std::move(CreateOperationCaller(CalledOperationCode::PRINT)));
-    
-    AddStandardAssembly("PrintLine", std::move(CreateOperationCaller(CalledOperationCode::PRINT_LINE)));
+  AddStandardAssembly("Print", std::move(CreateOperationCaller(CalledOperationCode::PRINT)));
 
-    // PrintLine, ReadLine, ReadChar, ReadInt, ReadFloat аналогично...
+  AddStandardAssembly("PrintLine", std::move(CreateOperationCaller(CalledOperationCode::PRINT_LINE)));
+
+  // PrintLine, ReadLine, ReadChar, ReadInt, ReadFloat аналогично...
 }
 /*
 void OilCommandAsmCompiler::InitializeSystemOperations() {
