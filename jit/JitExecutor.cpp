@@ -98,7 +98,7 @@ std::expected<void, std::runtime_error> JitExecutor::Run(execution_tree::PassedE
         *argv_ptr_copy = reinterpret_cast<uint64_t>(std::get<void*>(arg));
       } else {
         if (argv) {
-          delete argv;
+          delete[] argv;
         }
         return std::unexpected(std::runtime_error("JitExecutor::Run: unknown argument type in stack frame."));
       }
@@ -139,7 +139,7 @@ std::expected<void, std::runtime_error> JitExecutor::Run(execution_tree::PassedE
   }
 
   if (argv) {
-    delete argv;
+    delete[] argv;
   }
 
   return {};
