@@ -136,7 +136,7 @@ std::expected<void, std::runtime_error> JitExecutor::Run(execution_tree::PassedE
     case JitExecutorResultType::CHAR:
       data.memory.machine_stack.push(static_cast<char>(data_buffer.Result));
     break;
-    case JitExecutorResultType::VOID:
+    case JitExecutorResultType::kVoid:
       // Nothing to push
     break;
   }

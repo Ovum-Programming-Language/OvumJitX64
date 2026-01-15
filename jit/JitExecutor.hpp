@@ -20,7 +20,7 @@ enum JitExecutorResultType : uint8_t {
   BYTE,
   BOOL,
   CHAR,
-  VOID
+  kVoid
 };
 
 class JitExecutor : public executor::IJitExecutor {
